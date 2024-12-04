@@ -1,0 +1,116 @@
+
+@page "/events"
+@using Core.Services
+
+@inject IEventService EventService
+
+<h3>Events</h3>
+
+@if (events == null)
+{
+    <p>Loading...</p>
+}
+else if (!events.Any())
+{
+    <p>No events available</p>
+}
+else
+{
+    <ul>
+        @foreach (var ev in events)
+        {
+            <li>
+                @ev.Name - @ev.Dato.ToShortDateString() - @ev.Sted - @ev.DeltagerAntal deltagere
+                <button @onclick="() => EditEvent(ev)">Edit</button>
+                <button @onclick="() => DeleteEvent(ev.Id)">Delete</button>
+            </li>
+        }
+    </ul>
+}
+
+<h4>@(isEditMode ? "Edit Event" : "Add New Event")</h4>
+<EditForm Model="@currentEvent" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Navn:</label>
+        <InputText @bind-Value="currentEvent.Name" />
+    </div>
+    <div>
+        <label>Dato:</label>
+        <InputDate @bind-Value="currentEvent.Dato" />
+    </div>
+    <div>
+        <label>Sted:</label>
+        <InputText @bind-Value="currentEvent.Sted" />
+    </div>
+    <div>
+        <label>DeltagerAntal:</label>
+        <InputNumber @bind-Value="currentEvent.DeltagerAntal" />
+    </div>
+    <button type="submit">@((isEditMode) ? "Update" : "Add") Event</button>
+</EditForm>
+
+@code {
+    private List<Core.Models.Event>? events;
+    private Core.Models.Event currentEvent = new();
+    private bool isEditMode = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        events = await EventService.GetAllEventsAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (isEditMode)
+        {
+            await EventService.UpdateEventAsync(currentEvent);
+        }
+        else
+        {
+            await EventService.AddEventAsync(currentEvent);
+        }
+        ResetForm();
+        await RefreshEvents();
+    }
+
+    private void EditEvent(Core.Models.Event ev)
+    {
+        currentEvent = new Core.Models.Event
+        {
+            Id = ev.Id,
+            Name = ev.Name,
+            Dato = ev.Dato,
+            Sted = ev.Sted,
+            DeltagerAntal = ev.DeltagerAntal
+        };
+        isEditMode = true;
+    }
+
+    private async Task DeleteEvent(string? id)
+    {
+        if (id != null)
+        {
+            await EventService.DeleteEventAsync(id);
+            await RefreshEvents();
+        }
+    }
+
+    private void CancelEdit()
+    {
+        ResetForm();
+    }
+
+    private void ResetForm()
+    {
+        currentEvent = new Core.Models.Event();
+        isEditMode = false;
+    }
+
+    private async Task RefreshEvents()
+    {
+        events = await EventService.GetAllEventsAsync();
+    }
+}
