@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Kantineapp\Kantineapp.csproj" />
+    <PackageReference Include="MongoDB.Bson" Version="2.19.1" />
+    <PackageReference Include="MongoDB.Driver" Version="2.19.1" />
   </ItemGroup>
 
 </Project>
