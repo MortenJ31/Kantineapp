@@ -20,7 +20,7 @@ else
         {
             <li>
                 @ev.Name - @ev.Dato.ToShortDateString() - @ev.Sted - @ev.DeltagerAntal deltagere
-                <button @onclick="() => VælgEvent(ev)">Vælg</button>
+                <button @onclick="() => RedigerOgVælgEvent(ev)">Rediger/Vælg</button>
                 <button @onclick="() => SletEvent(ev.Id)">Slet</button>
             </li>
         }
@@ -86,7 +86,7 @@ else
     </EditForm>
 }
 
-<h5>Opret nyt event</h5>
+<h5>@(isEditMode ? "Rediger Event" : "Opret nyt Event")</h5>
 <EditForm Model="@currentEvent" OnValidSubmit="@GemEvent">
     <div>
         <label>Navn:</label>
@@ -105,6 +105,10 @@ else
         <InputNumber @bind-Value="currentEvent.DeltagerAntal" />
     </div>
     <button type="submit">@((isEditMode) ? "Opdater" : "Tilføj") Event</button>
+    @if (isEditMode)
+    {
+        <button @onclick="AnnullerRedigering">Annuller</button>
+    }
 </EditForm>
 
 @code {
@@ -142,12 +146,29 @@ else
         medarbejdere = alleBrugere.Where(u => u.Rolle == "Medarbejder").ToList();
     }
 
-    private void VælgEvent(Core.Models.Event ev)
+    private void RedigerOgVælgEvent(Core.Models.Event ev)
     {
         selectedEvent = ev;
+        currentEvent = new Core.Models.Event
+        {
+            Id = ev.Id,
+            Name = ev.Name,
+            Dato = ev.Dato,
+            Sted = ev.Sted,
+            DeltagerAntal = ev.DeltagerAntal
+        };
+        isEditMode = true;
         nyOpgave = new Opgave();
         selectedMedarbejdere.Clear();
         _ = HentOpgaver();
+    }
+
+    private void AnnullerRedigering()
+    {
+        currentEvent = new Core.Models.Event();
+        selectedEvent = null;
+        isEditMode = false;
+        opgaver = new();
     }
 
     private async Task TilføjOpgave()
