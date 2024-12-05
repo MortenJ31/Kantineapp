@@ -24,7 +24,7 @@ namespace Core.Services
 
         public Task<List<Event>> GetAllEventsAsync()
         {
-            return Task.FromResult(_events.Values.ToList());
+            return Task.FromResult(_events.Values.OrderBy(e => e.Dato).ToList()); // Sorter events efter dato
         }
 
         public Task<Event?> GetEventByIdAsync(string id)

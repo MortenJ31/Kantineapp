@@ -9,5 +9,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Dependency injection
 builder.Services.AddSingleton<IEventService, EventServiceInMemory>();
+builder.Services.AddSingleton<IOpgaveService, OpgaveServiceInMemory>();
 
 await builder.Build().RunAsync();

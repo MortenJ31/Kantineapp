@@ -1,8 +1,7 @@
-
 @page "/events"
-@using Core.Services
 
 @inject IEventService EventService
+@inject IOpgaveService OpgaveService
 
 <h3>Events</h3>
 
@@ -12,7 +11,7 @@
 }
 else if (!events.Any())
 {
-    <p>No events available</p>
+    <p>Ingen events tilgængelige.</p>
 }
 else
 {
@@ -21,18 +20,74 @@ else
         {
             <li>
                 @ev.Name - @ev.Dato.ToShortDateString() - @ev.Sted - @ev.DeltagerAntal deltagere
-                <button @onclick="() => EditEvent(ev)">Edit</button>
-                <button @onclick="() => DeleteEvent(ev.Id)">Delete</button>
+                <button @onclick="() => VælgEvent(ev)">Vælg</button>
+                <button @onclick="() => SletEvent(ev.Id)">Slet</button>
             </li>
         }
     </ul>
 }
 
-<h4>@(isEditMode ? "Edit Event" : "Add New Event")</h4>
-<EditForm Model="@currentEvent" OnValidSubmit="@HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+@if (selectedEvent != null)
+{
+    <h4>Opgaver for @selectedEvent.Name</h4>
+    @if (opgaver == null)
+    {
+        <p>Loading opgaver...</p>
+    }
+    else if (!opgaver.Any())
+    {
+        <p>Ingen opgaver til dette event.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var opgave in opgaver)
+            {
+                <li>
+                    @opgave.Navn - Status: @opgave.Status
+                    <ul>
+                        @foreach (var medarbejderId in opgave.MedarbejderIds)
+                        {
+                            <li>Medarbejder ID: @medarbejderId</li>
+                        }
+                    </ul>
+                </li>
+            }
+        </ul>
+    }
 
+    <h5>Tilføj ny opgave</h5>
+    <EditForm Model="@nyOpgave" OnValidSubmit="@TilføjOpgave">
+        <div>
+            <label>Navn:</label>
+            <InputText @bind-Value="nyOpgave.Navn" />
+        </div>
+        <div>
+            <label>Status:</label>
+            <InputSelect @bind-Value="nyOpgave.Status">
+                <option value="Ikke Påbegyndt">Ikke Påbegyndt</option>
+                <option value="Igang">Igang</option>
+                <option value="Færdig">Færdig</option>
+            </InputSelect>
+        </div>
+        <div>
+            <label>Vælg medarbejdere:</label>
+            <ul>
+                @foreach (var medarbejder in medarbejdere)
+                {
+                    <li>
+                        <input type="checkbox" value="@medarbejder.Id" @onchange="(e) => ToggleMedarbejderSelection(e, medarbejder.Id)" />
+                        @medarbejder.Navn (@medarbejder.Kompetence)
+                    </li>
+                }
+            </ul>
+        </div>
+        <button type="submit">Tilføj opgave</button>
+    </EditForm>
+}
+
+<h5>Opret nyt event</h5>
+<EditForm Model="@currentEvent" OnValidSubmit="@GemEvent">
     <div>
         <label>Navn:</label>
         <InputText @bind-Value="currentEvent.Name" />
@@ -49,20 +104,65 @@ else
         <label>DeltagerAntal:</label>
         <InputNumber @bind-Value="currentEvent.DeltagerAntal" />
     </div>
-    <button type="submit">@((isEditMode) ? "Update" : "Add") Event</button>
+    <button type="submit">@((isEditMode) ? "Opdater" : "Tilføj") Event</button>
 </EditForm>
 
 @code {
-    private List<Core.Models.Event>? events;
+    private List<Core.Models.Event> events = new();
+    private List<Opgave> opgaver = new();
+    private List<User> medarbejdere = new();
+    private List<string> selectedMedarbejdere = new();
+    private Core.Models.Event? selectedEvent;
     private Core.Models.Event currentEvent = new();
+    private Opgave nyOpgave = new();
     private bool isEditMode = false;
 
     protected override async Task OnInitializedAsync()
     {
+        await HentEvents();
+        await HentMedarbejdere();
+    }
+
+    private async Task HentEvents()
+    {
         events = await EventService.GetAllEventsAsync();
     }
 
-    private async Task HandleValidSubmit()
+    private async Task HentOpgaver()
+    {
+        if (selectedEvent?.Id != null)
+        {
+            opgaver = await OpgaveService.GetOpgaverByEventIdAsync(selectedEvent.Id);
+        }
+    }
+
+    private async Task HentMedarbejdere()
+    {
+        var alleBrugere = await OpgaveService.GetMedarbejdereAsync();
+        medarbejdere = alleBrugere.Where(u => u.Rolle == "Medarbejder").ToList();
+    }
+
+    private void VælgEvent(Core.Models.Event ev)
+    {
+        selectedEvent = ev;
+        nyOpgave = new Opgave();
+        selectedMedarbejdere.Clear();
+        _ = HentOpgaver();
+    }
+
+    private async Task TilføjOpgave()
+    {
+        if (selectedEvent?.Id != null)
+        {
+            nyOpgave.MedarbejderIds = selectedMedarbejdere.ToList();
+            await OpgaveService.AddOpgaveAsync(selectedEvent.Id, nyOpgave);
+            nyOpgave = new Opgave();
+            selectedMedarbejdere.Clear();
+            await HentOpgaver();
+        }
+    }
+
+    private async Task GemEvent()
     {
         if (isEditMode)
         {
@@ -72,45 +172,38 @@ else
         {
             await EventService.AddEventAsync(currentEvent);
         }
-        ResetForm();
-        await RefreshEvents();
+
+        currentEvent = new Core.Models.Event();
+        isEditMode = false;
+        await HentEvents();
     }
 
-    private void EditEvent(Core.Models.Event ev)
+    private async Task SletEvent(string? id)
     {
-        currentEvent = new Core.Models.Event
-        {
-            Id = ev.Id,
-            Name = ev.Name,
-            Dato = ev.Dato,
-            Sted = ev.Sted,
-            DeltagerAntal = ev.DeltagerAntal
-        };
-        isEditMode = true;
-    }
-
-    private async Task DeleteEvent(string? id)
-    {
-        if (id != null)
+        if (!string.IsNullOrEmpty(id))
         {
             await EventService.DeleteEventAsync(id);
-            await RefreshEvents();
+            if (selectedEvent?.Id == id)
+            {
+                selectedEvent = null;
+                opgaver = new();
+            }
+            await HentEvents();
         }
     }
 
-    private void CancelEdit()
+    private void ToggleMedarbejderSelection(ChangeEventArgs e, string medarbejderId)
     {
-        ResetForm();
-    }
-
-    private void ResetForm()
-    {
-        currentEvent = new Core.Models.Event();
-        isEditMode = false;
-    }
-
-    private async Task RefreshEvents()
-    {
-        events = await EventService.GetAllEventsAsync();
+        if (e.Value is bool isChecked && isChecked)
+        {
+            if (!selectedMedarbejdere.Contains(medarbejderId))
+            {
+                selectedMedarbejdere.Add(medarbejderId);
+            }
+        }
+        else
+        {
+            selectedMedarbejdere.Remove(medarbejderId);
+        }
     }
 }
