@@ -18,11 +18,12 @@ else
     <ul>
         @foreach (var ev in events)
         {
-            <li>
-                @ev.Name - @ev.Dato.ToShortDateString() - @ev.Sted - @ev.DeltagerAntal deltagere
-                <button @onclick="() => RedigerOgVælgEvent(ev)">Rediger/Vælg</button>
-                <button @onclick="() => SletEvent(ev.Id)">Slet</button>
-            </li>
+        <li>
+            @ev.Name - @ev.Dato.ToShortDateString() - @ev.Sted - @ev.DeltagerAntal deltagere
+            <button @onclick="() => VælgEvent(ev)">Vælg</button>
+            <button @onclick="() => RedigerEvent(ev)">Rediger</button>
+            <button @onclick="() => SletEvent(ev.Id)">Slet</button>
+        </li>
         }
     </ul>
 }
@@ -39,8 +40,7 @@ else
         <p>Ingen opgaver til dette event.</p>
     }
     else
-    {
-        <ul>
+    {<ul>
             @foreach (var opgave in opgaver)
             {
                 <li>
@@ -48,12 +48,14 @@ else
                     <ul>
                         @foreach (var medarbejderId in opgave.MedarbejderIds)
                         {
-                            <li>Medarbejder ID: @medarbejderId</li>
+                            var medarbejder = medarbejdere.FirstOrDefault(m => m.Id == medarbejderId);
+                            <li>@(medarbejder?.Navn ?? "Ukendt medarbejder")</li>
                         }
                     </ul>
                 </li>
             }
         </ul>
+
     }
 
     <h5>Tilføj ny opgave</h5>
@@ -70,6 +72,7 @@ else
                 <option value="Færdig">Færdig</option>
             </InputSelect>
         </div>
+   
         <div>
             <label>Vælg medarbejdere:</label>
             <ul>
@@ -146,9 +149,20 @@ else
         medarbejdere = alleBrugere.Where(u => u.Rolle == "Medarbejder").ToList();
     }
 
-    private void RedigerOgVælgEvent(Core.Models.Event ev)
+    private void VælgEvent(Core.Models.Event ev)
     {
         selectedEvent = ev;
+        nyOpgave = new Opgave
+        {
+            Status = "Ikke Påbegyndt"
+        };
+        selectedMedarbejdere.Clear();
+        _ = HentOpgaver();
+    }
+
+
+    private void RedigerEvent(Core.Models.Event ev)
+    {
         currentEvent = new Core.Models.Event
         {
             Id = ev.Id,
@@ -158,9 +172,6 @@ else
             DeltagerAntal = ev.DeltagerAntal
         };
         isEditMode = true;
-        nyOpgave = new Opgave();
-        selectedMedarbejdere.Clear();
-        _ = HentOpgaver();
     }
 
     private void AnnullerRedigering()
