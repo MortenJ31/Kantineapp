@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - KantineApp</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+<div class="login-container">
+    <div class="login-form">
+        <h1>Login</h1>
+        <form onsubmit="validateLogin(event)">
+            <input type="text" id="username" placeholder="Brugernavn" required>
+            <input type="password" id="password" placeholder="Adgangskode" required>
+            <button type="submit">Log ind</button>
+        </form>
+    </div>
+    <div class="image-container">
+        <img src="Login_image.jpg" alt="Login Image">
+    </div>
+
+</div>
+<script>
+    function validateLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+
+        if (username === 'sanaa' && password === '12345') {
+            alert('Login successful!');
+
+
+        } else {
+            alert('Invalid username or password!');
+        }
+    }
+
+</script>
+</body>
+</html>
