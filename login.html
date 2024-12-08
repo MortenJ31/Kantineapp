@@ -24,18 +24,32 @@
     {
         <p class="error-message">@loginMessage</p>
     }
+
+    <!-- Success Modal (Hidden by default) -->
+    @if (showSuccessModal)
+    {
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <h4>Successfully Logged In</h4>
+                <p>Welcome back!</p>
+                <button class="btn btn-success" @onclick="CloseSuccessModal">Close</button>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
     private UserModel user = new UserModel();
     private string? loginMessage;
+    private bool showSuccessModal = false; // Controls the modal visibility
 
     private void HandleLogin()
     {
         if (user.Username == "sanaa" && user.Password == "12345")
         {
-            // Redirect to Dashboard
-            NavigationManager.NavigateTo("/dashboard");
+            // Show the success modal instead of redirecting to the dashboard
+            showSuccessModal = true;
+            loginMessage = null; // Clear any previous error messages
         }
         else
         {
@@ -43,10 +57,15 @@
         }
     }
 
+    private void CloseSuccessModal()
+    {
+        showSuccessModal = false;
+    }
+
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
-    // UserModel er under Login.razor
+    // UserModel for Login
     public class UserModel
     {
         public string Username { get; set; } = string.Empty;
