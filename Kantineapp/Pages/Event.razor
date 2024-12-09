@@ -1,10 +1,10 @@
-@page "/events"
+@page "/"
 @inject IEventService EventService
 @inject IOpgaveService OpgaveService
 @inject IUserService UserService
 
 <div class="container mt-4">
-    <h3 class="mb-4">Event Liste</h3>
+    <h3 class="mb-4">Events</h3>
 
     @if (events == null)
     {
@@ -247,11 +247,19 @@
     {
         newTask.AssignedEmployeeIds = selectedEmployeeIds.ToList();
         newTask.EventId = selectedEvent?.Id!;
+        
         await OpgaveService.AddOpgaveAsync(newTask);
-        showTaskModal = false;
-        selectedEmployeeIds.Clear();
+        
         await LoadTasks();
+        
+        newTask = new Opgave
+        {
+            StartTid = DateTime.Now,
+            SlutTid = DateTime.Now.AddHours(1)
+        };
+        selectedEmployeeIds.Clear(); 
     }
+
 
     private void OpenAddTaskModal(Events ev)
     {
