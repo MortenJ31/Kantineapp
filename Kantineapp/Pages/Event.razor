@@ -1,241 +1,280 @@
 @page "/events"
-
 @inject IEventService EventService
 @inject IOpgaveService OpgaveService
+@inject IUserService UserService
 
-<h3>Events</h3>
+<div class="container mt-4">
+    <h3 class="mb-4">Event Liste</h3>
 
-@if (events == null)
-{
-    <p>Loading...</p>
-}
-else if (!events.Any())
-{
-    <p>Ingen events tilgængelige.</p>
-}
-else
-{
-    <ul>
+    @if (events == null)
+    {
+    <p>Indlæser events...</p>
+    }
+    else if (!events.Any())
+    {
+    <p>Ingen events fundet.</p>
+    }
+    else
+    {
+    <ul class="list-group">
         @foreach (var ev in events)
         {
-        <li>
-            @ev.Name - @ev.Dato.ToShortDateString() - @ev.Sted - @ev.DeltagerAntal deltagere
-            <button @onclick="() => VælgEvent(ev)">Vælg</button>
-            <button @onclick="() => RedigerEvent(ev)">Rediger</button>
-            <button @onclick="() => SletEvent(ev.Id)">Slet</button>
+        <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <!-- Primary Event Details -->
+                <div @onclick="() => ToggleTaskList(ev.Id)" style="cursor: pointer;">
+                    <strong>@ev.Name</strong> - @ev.Dato.ToShortDateString() - Lokation: @ev.Lokation
+                    <br />
+                    Kunde: @ev.Kunde - Madvalg: @ev.MadValg - Særlige Ønsker: @ev.SærligeØnsker - Deltagerantal: @ev.DeltagerAntal
+                    <i class="ms-2 @(openEventId == ev.Id ? "bi bi-chevron-up" : "bi bi-chevron-down")"></i>
+                </div>
+                <!-- Actions -->
+                <div>
+                    <button class="btn btn-warning btn-sm me-2" @onclick="() => ToggleEditEvent(ev.Id)">Rediger</button>
+                    <button class="btn btn-danger btn-sm me-2" @onclick="() => DeleteEvent(ev.Id)">Slet</button>
+                    <button class="btn btn-primary btn-sm" @onclick="() => OpenAddTaskModal(ev)">Tilføj Opgave</button>
+                </div>
+            </div>
+
+            @if (openEventId == ev.Id && !isEditing)
+            {
+            <!-- Associated Tasks -->
+            <div class="mt-3">
+                <h5>Opgaver:</h5>
+                @if (!tasksByEvent.ContainsKey(ev.Id) || !tasksByEvent[ev.Id].Any())
+                {
+                <p>Ingen opgaver tilknyttet dette event.</p>
+                }
+                else
+                {
+                <ul class="list-group">
+                    @foreach (var task in tasksByEvent[ev.Id])
+                    {
+                    <li class="list-group-item">
+                        <strong>@task.Beskrivelse</strong> - Status: <span class="badge bg-info">@task.Status</span>
+                        <div>Start: @task.StartTid | Slut: @task.SlutTid</div>
+                        <div>Medarbejdere:
+                            @if (task.AssignedEmployeeIds.Any())
+                            {
+                            @foreach (var empId in task.AssignedEmployeeIds)
+                            {
+                            var employee = employees.FirstOrDefault(e => e.Id == empId);
+                            if (employee != null)
+                            {
+                            <span class="badge bg-secondary">@employee.Navn</span>
+                            }
+                            }
+                            }
+                            else
+                            {
+                            <span class="text-muted">Ingen medarbejdere tilknyttet</span>
+                            }
+                        </div>
+                    </li>
+                    }
+                </ul>
+                }
+            </div>
+            }
+
+            @if (openEventId == ev.Id && isEditing)
+            {
+            <!-- Edit Event Form -->
+            <div class="mt-3">
+                <EditForm Model="@editEvent" OnValidSubmit="@SaveEditedEvent">
+                    <div class="mb-3">
+                        <label for="eventName" class="form-label">Navn:</label>
+                        <InputText id="eventName" @bind-Value="editEvent.Name" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventLocation" class="form-label">Lokation:</label>
+                        <InputText id="eventLocation" @bind-Value="editEvent.Lokation" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventDate" class="form-label">Dato:</label>
+                        <InputDate id="eventDate" @bind-Value="editEvent.Dato" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventFood" class="form-label">Madvalg:</label>
+                        <InputText id="eventFood" @bind-Value="editEvent.MadValg" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="specialRequests" class="form-label">Særlige Ønsker:</label>
+                        <InputText id="specialRequests" @bind-Value="editEvent.SærligeØnsker" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="customer" class="form-label">Kunde:</label>
+                        <InputText id="customer" @bind-Value="editEvent.Kunde" class="form-control" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Gem</button>
+                    <button type="button" class="btn btn-secondary ms-2" @onclick="CloseEditEvent">Luk</button>
+                </EditForm>
+            </div>
+            }
         </li>
         }
     </ul>
-}
+    }
 
-@if (selectedEvent != null)
-{
-    <h4>Opgaver for @selectedEvent.Name</h4>
-    @if (opgaver == null)
+    @if (showTaskModal)
     {
-        <p>Loading opgaver...</p>
-    }
-    else if (!opgaver.Any())
-    {
-        <p>Ingen opgaver til dette event.</p>
-    }
-    else
-    {<ul>
-            @foreach (var opgave in opgaver)
-            {
-                <li>
-                    @opgave.Navn - Status: @opgave.Status
-                    <ul>
-                        @foreach (var medarbejderId in opgave.MedarbejderIds)
-                        {
-                            var medarbejder = medarbejdere.FirstOrDefault(m => m.Id == medarbejderId);
-                            <li>@(medarbejder?.Navn ?? "Ukendt medarbejder")</li>
-                        }
-                    </ul>
-                </li>
-            }
-        </ul>
-
-    }
-
-    <h5>Tilføj ny opgave</h5>
-    <EditForm Model="@nyOpgave" OnValidSubmit="@TilføjOpgave">
-        <div>
-            <label>Navn:</label>
-            <InputText @bind-Value="nyOpgave.Navn" />
+    <div class="modal" style="display: block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tilføj Opgave til Event: @selectedEvent?.Name</h5>
+                    <button type="button" class="btn-close" @onclick="CloseTaskModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@newTask" OnValidSubmit="@AddTask">
+                        <div class="mb-3">
+                            <label for="taskDescription" class="form-label">Beskrivelse:</label>
+                            <InputText id="taskDescription" @bind-Value="newTask.Beskrivelse" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskStart" class="form-label">Starttid:</label>
+                            <InputDate id="taskStart" @bind-Value="newTask.StartTid" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskEnd" class="form-label">Sluttid:</label>
+                            <InputDate id="taskEnd" @bind-Value="newTask.SlutTid" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskEmployees" class="form-label">Medarbejdere:</label>
+                            @foreach (var employee in employees)
+                            {
+                            <div>
+                                <input type="checkbox" id="@employee.Id" value="@employee.Id" @onchange="e => ToggleEmployeeSelection(e, employee.Id)" />
+                                <label for="@employee.Id">@employee.Navn</label>
+                            </div>
+                            }
+                        </div>
+                        <button type="submit" class="btn btn-primary">Tilføj</button>
+                    </EditForm>
+                </div>
+            </div>
         </div>
-        <div>
-            <label>Status:</label>
-            <InputSelect @bind-Value="nyOpgave.Status">
-                <option value="Ikke Påbegyndt">Ikke Påbegyndt</option>
-                <option value="Igang">Igang</option>
-                <option value="Færdig">Færdig</option>
-            </InputSelect>
-        </div>
-   
-        <div>
-            <label>Vælg medarbejdere:</label>
-            <ul>
-                @foreach (var medarbejder in medarbejdere)
-                {
-                    <li>
-                        <input type="checkbox" value="@medarbejder.Id" @onchange="(e) => ToggleMedarbejderSelection(e, medarbejder.Id)" />
-                        @medarbejder.Navn (@medarbejder.Kompetence)
-                    </li>
-                }
-            </ul>
-        </div>
-        <button type="submit">Tilføj opgave</button>
-    </EditForm>
-}
-
-<h5>@(isEditMode ? "Rediger Event" : "Opret nyt Event")</h5>
-<EditForm Model="@currentEvent" OnValidSubmit="@GemEvent">
-    <div>
-        <label>Navn:</label>
-        <InputText @bind-Value="currentEvent.Name" />
     </div>
-    <div>
-        <label>Dato:</label>
-        <InputDate @bind-Value="currentEvent.Dato" />
-    </div>
-    <div>
-        <label>Sted:</label>
-        <InputText @bind-Value="currentEvent.Sted" />
-    </div>
-    <div>
-        <label>DeltagerAntal:</label>
-        <InputNumber @bind-Value="currentEvent.DeltagerAntal" />
-    </div>
-    <button type="submit">@((isEditMode) ? "Opdater" : "Tilføj") Event</button>
-    @if (isEditMode)
-    {
-        <button @onclick="AnnullerRedigering">Annuller</button>
     }
-</EditForm>
+</div>
 
 @code {
-    private List<Core.Models.Event> events = new();
-    private List<Opgave> opgaver = new();
-    private List<User> medarbejdere = new();
-    private List<string> selectedMedarbejdere = new();
-    private Core.Models.Event? selectedEvent;
-    private Core.Models.Event currentEvent = new();
-    private Opgave nyOpgave = new();
-    private bool isEditMode = false;
+    private List<Events> events = new();
+    private Dictionary<string, List<Opgave>> tasksByEvent = new();
+    private Events? selectedEvent;
+    private Opgave newTask = new();
+    private Events? editEvent;
+    private List<User> employees = new();
+    private string? openEventId = null;
+    private bool isEditing = false;
+    private bool showTaskModal = false;
+    private HashSet<string> selectedEmployeeIds = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await HentEvents();
-        await HentMedarbejdere();
+        await LoadEvents();
+        await LoadTasks();
+        await LoadEmployees();
     }
 
-    private async Task HentEvents()
+    private async Task LoadEvents()
     {
-        events = await EventService.GetAllEventsAsync();
+        events = await EventService.GetAllEventsAsync() ?? new List<Events>();
     }
 
-    private async Task HentOpgaver()
+    private async Task LoadTasks()
     {
-        if (selectedEvent?.Id != null)
+        var allTasks = await OpgaveService.GetAllOpgaverAsync() ?? new List<Opgave>();
+        tasksByEvent = allTasks
+            .Where(task => task.EventId != null)
+            .GroupBy(task => task.EventId!)
+            .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
+    private async Task LoadEmployees()
+    {
+        employees = await UserService.GetUsersByRoleAsync(Rolle.Medarbejder) ?? new List<User>();
+    }
+
+    private void ToggleTaskList(string eventId)
+    {
+        openEventId = openEventId == eventId ? null : eventId;
+        isEditing = false;
+    }
+
+    private void ToggleEditEvent(string eventId)
+    {
+        if (openEventId == eventId && isEditing)
         {
-            opgaver = await OpgaveService.GetOpgaverByEventIdAsync(selectedEvent.Id);
+            CloseEditEvent();
+            return;
+        }
+
+        openEventId = eventId;
+        editEvent = events.FirstOrDefault(e => e.Id == eventId);
+        isEditing = true;
+    }
+
+    private void CloseEditEvent()
+    {
+        isEditing = false;
+        editEvent = null;
+    }
+
+    private async Task SaveEditedEvent()
+    {
+        if (editEvent != null)
+        {
+            await EventService.UpdateEventAsync(editEvent);
+            isEditing = false;
+            await LoadEvents();
         }
     }
 
-    private async Task HentMedarbejdere()
+    private void ToggleEmployeeSelection(ChangeEventArgs e, string employeeId)
     {
-        var alleBrugere = await OpgaveService.GetMedarbejdereAsync();
-        medarbejdere = alleBrugere.Where(u => u.Rolle == "Medarbejder").ToList();
+        if ((bool)e.Value!)
+        {
+            selectedEmployeeIds.Add(employeeId);
+        }
+        else
+        {
+            selectedEmployeeIds.Remove(employeeId);
+        }
     }
 
-    private void VælgEvent(Core.Models.Event ev)
+    private async Task AddTask()
+    {
+        newTask.AssignedEmployeeIds = selectedEmployeeIds.ToList();
+        newTask.EventId = selectedEvent?.Id!;
+        await OpgaveService.AddOpgaveAsync(newTask);
+        showTaskModal = false;
+        selectedEmployeeIds.Clear();
+        await LoadTasks();
+    }
+
+    private void OpenAddTaskModal(Events ev)
     {
         selectedEvent = ev;
-        nyOpgave = new Opgave
+        newTask = new Opgave
         {
-            Status = "Ikke Påbegyndt"
+            StartTid = DateTime.Now,
+            SlutTid = DateTime.Now.AddHours(1)
         };
-        selectedMedarbejdere.Clear();
-        _ = HentOpgaver();
+        showTaskModal = true;
     }
 
-
-    private void RedigerEvent(Core.Models.Event ev)
+    private void CloseTaskModal()
     {
-        currentEvent = new Core.Models.Event
-        {
-            Id = ev.Id,
-            Name = ev.Name,
-            Dato = ev.Dato,
-            Sted = ev.Sted,
-            DeltagerAntal = ev.DeltagerAntal
-        };
-        isEditMode = true;
+        showTaskModal = false;
+        newTask = new Opgave();
+        selectedEmployeeIds.Clear();
     }
 
-    private void AnnullerRedigering()
+    private async Task DeleteEvent(string eventId)
     {
-        currentEvent = new Core.Models.Event();
-        selectedEvent = null;
-        isEditMode = false;
-        opgaver = new();
-    }
-
-    private async Task TilføjOpgave()
-    {
-        if (selectedEvent?.Id != null)
-        {
-            nyOpgave.MedarbejderIds = selectedMedarbejdere.ToList();
-            await OpgaveService.AddOpgaveAsync(selectedEvent.Id, nyOpgave);
-            nyOpgave = new Opgave();
-            selectedMedarbejdere.Clear();
-            await HentOpgaver();
-        }
-    }
-
-    private async Task GemEvent()
-    {
-        if (isEditMode)
-        {
-            await EventService.UpdateEventAsync(currentEvent);
-        }
-        else
-        {
-            await EventService.AddEventAsync(currentEvent);
-        }
-
-        currentEvent = new Core.Models.Event();
-        isEditMode = false;
-        await HentEvents();
-    }
-
-    private async Task SletEvent(string? id)
-    {
-        if (!string.IsNullOrEmpty(id))
-        {
-            await EventService.DeleteEventAsync(id);
-            if (selectedEvent?.Id == id)
-            {
-                selectedEvent = null;
-                opgaver = new();
-            }
-            await HentEvents();
-        }
-    }
-
-    private void ToggleMedarbejderSelection(ChangeEventArgs e, string medarbejderId)
-    {
-        if (e.Value is bool isChecked && isChecked)
-        {
-            if (!selectedMedarbejdere.Contains(medarbejderId))
-            {
-                selectedMedarbejdere.Add(medarbejderId);
-            }
-        }
-        else
-        {
-            selectedMedarbejdere.Remove(medarbejderId);
-        }
+        await EventService.DeleteEventAsync(eventId);
+        await LoadEvents();
+        await LoadTasks();
     }
 }

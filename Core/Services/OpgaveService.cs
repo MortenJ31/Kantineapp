@@ -1,49 +1,46 @@
 using Core.Models;
 using MongoDB.Driver;
 
-
 namespace Core.Services
 {
     public class OpgaveService : IOpgaveService
     {
-        private readonly IMongoCollection<Opgave> _opgaverCollection;
-        private readonly IMongoCollection<User> _usersCollection; 
+        private readonly IMongoCollection<Opgave> _opgaver;
+
         public OpgaveService(IMongoDatabase database)
         {
-            _opgaverCollection = database.GetCollection<Opgave>("Opgaver");
-            _usersCollection = database.GetCollection<User>("Users"); 
+            _opgaver = database.GetCollection<Opgave>("Opgaver");
+        }
+
+        public async Task<List<Opgave>> GetAllOpgaverAsync()
+        {
+            return await _opgaver.Find(_ => true).ToListAsync();
+        }
+
+        public async Task<Opgave?> GetOpgaveByIdAsync(string id)
+        {
+            return await _opgaver.Find(o => o.Id == id).FirstOrDefaultAsync();
         }
 
         public async Task<List<Opgave>> GetOpgaverByEventIdAsync(string eventId)
         {
-            return await _opgaverCollection.Find(o => o.EventId == eventId).ToListAsync();
+            return await _opgaver.Find(o => o.EventId == eventId).ToListAsync();
         }
 
-        public async Task<Opgave?> GetOpgaveByIdAsync(string opgaveId)
+        public async Task AddOpgaveAsync(Opgave opgave)
         {
-            return await _opgaverCollection.Find(o => o.OpgaveId == opgaveId).FirstOrDefaultAsync();
+            opgave.Id = Guid.NewGuid().ToString();
+            await _opgaver.InsertOneAsync(opgave);
         }
 
-        public async Task AddOpgaveAsync(string eventId, Opgave opgave)
+        public async Task UpdateOpgaveAsync(Opgave updatedOpgave)
         {
-            opgave.OpgaveId = Guid.NewGuid().ToString();
-            opgave.EventId = eventId;
-            await _opgaverCollection.InsertOneAsync(opgave);
+            await _opgaver.ReplaceOneAsync(o => o.Id == updatedOpgave.Id, updatedOpgave);
         }
 
-        public async Task UpdateOpgaveAsync(Opgave opgave)
+        public async Task DeleteOpgaveAsync(string id)
         {
-            await _opgaverCollection.ReplaceOneAsync(o => o.OpgaveId == opgave.OpgaveId, opgave);
-        }
-
-        public async Task DeleteOpgaveAsync(string eventId, string opgaveId)
-        {
-            await _opgaverCollection.DeleteOneAsync(o => o.EventId == eventId && o.OpgaveId == opgaveId);
-        }
-
-        public async Task<List<User>> GetMedarbejdereAsync()
-        {
-            return await _usersCollection.Find(u => u.Rolle == "Medarbejder").ToListAsync();
+            await _opgaver.DeleteOneAsync(o => o.Id == id);
         }
     }
 }

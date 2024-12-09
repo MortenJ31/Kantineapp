@@ -1,15 +1,15 @@
 namespace Core.Services
 {
-    using Core.Models;
+    using Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
     public interface IEventService
     {
-        Task<List<Event>> GetAllEventsAsync();
-        Task<Event?> GetEventByIdAsync(string id);
-        Task AddEventAsync(Event newEvent);
-        Task UpdateEventAsync(Event updatedEvent);
+        Task<List<Events>> GetAllEventsAsync();
+        Task<Events?> GetEventByIdAsync(string id);
+        Task AddEventAsync(Events newEvent);
+        Task UpdateEventAsync(Events updatedEvent);
         Task DeleteEventAsync(string id);
     }
 }

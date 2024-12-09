@@ -1,19 +1,41 @@
+using Core.Models;
+using System.Collections.Concurrent;
+
 namespace Core.Services
 {
-    using Core.Models;
-    using System.Collections.Concurrent;
-
     public class EventServiceInMemory : IEventService
     {
-        private readonly ConcurrentDictionary<string, Event> _events = new();
+        private readonly ConcurrentDictionary<string, Events> _events = new();
 
         public EventServiceInMemory()
         {
-            // Mock data
-            var mockData = new List<Event>
+            // Mockdata
+            var mockData = new List<Events>
             {
-                new Event { Id = Guid.NewGuid().ToString(), Name = "Sommerfest", Dato = DateTime.Now.AddDays(10), Sted = "Parken", DeltagerAntal = 50 },
-                new Event { Id = Guid.NewGuid().ToString(), Name = "Julefrokost", Dato = DateTime.Now.AddMonths(1), Sted = "Kantinen", DeltagerAntal = 30 },
+                new Events 
+                { 
+                    Id = Guid.NewGuid().ToString(), 
+                    Name = "Sommerfest", 
+                    Dato = DateTime.Now.AddDays(10), 
+                    Lokation = "Parken", 
+                    DeltagerAntal = 50, 
+                    MadValg = "Grill", 
+                    SærligeØnsker = "Vegetarisk mad", 
+                    Kunde = "Firma A", 
+                    Opgaver = new List<Opgave>() // Tom liste for opgaver
+                },
+                new Events 
+                { 
+                    Id = Guid.NewGuid().ToString(), 
+                    Name = "Julefrokost", 
+                    Dato = DateTime.Now.AddMonths(1), 
+                    Lokation = "Kantinen", 
+                    DeltagerAntal = 30, 
+                    MadValg = "Traditionel", 
+                    SærligeØnsker = "Ingen alkohol", 
+                    Kunde = "Firma B", 
+                    Opgaver = new List<Opgave>() // Tom liste for opgaver
+                }
             };
 
             foreach (var ev in mockData)
@@ -22,27 +44,28 @@ namespace Core.Services
             }
         }
 
-        public Task<List<Event>> GetAllEventsAsync()
+        public Task<List<Events>> GetAllEventsAsync()
         {
-            return Task.FromResult(_events.Values.OrderBy(e => e.Dato).ToList()); // Sorter events efter dato
+            return Task.FromResult(_events.Values.ToList());
         }
 
-        public Task<Event?> GetEventByIdAsync(string id)
+        public Task<Events?> GetEventByIdAsync(string id)
         {
             _events.TryGetValue(id, out var ev);
             return Task.FromResult(ev);
         }
 
-        public Task AddEventAsync(Event newEvent)
+        public Task AddEventAsync(Events newEvent)
         {
             newEvent.Id = Guid.NewGuid().ToString();
+            newEvent.Opgaver = new List<Opgave>(); // Sikrer, at nye events har en tom liste af opgaver
             _events[newEvent.Id!] = newEvent;
             return Task.CompletedTask;
         }
 
-        public Task UpdateEventAsync(Event updatedEvent)
+        public Task UpdateEventAsync(Events updatedEvent)
         {
-            if (!string.IsNullOrEmpty(updatedEvent.Id) && _events.ContainsKey(updatedEvent.Id))
+            if (updatedEvent.Id != null && _events.ContainsKey(updatedEvent.Id))
             {
                 _events[updatedEvent.Id] = updatedEvent;
             }

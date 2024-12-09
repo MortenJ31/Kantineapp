@@ -1,88 +1,67 @@
 using Core.Models;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Core.Services
 {
     public class OpgaveServiceInMemory : IOpgaveService
     {
-        private readonly ConcurrentDictionary<string, List<Opgave>> _opgaverByEvent = new();
-        private readonly List<User> _users = new();
+        private readonly ConcurrentDictionary<string, Opgave> _opgaver = new();
 
         public OpgaveServiceInMemory()
         {
-            // Mock data for brugere
-            _users = new List<User>
+            // Eksempel på hardcodede event-id'er fra EventServiceInMemory
+            var event1Id = Guid.NewGuid().ToString(); // Opdater dette til at matche event 1's Id fra EventServiceInMemory
+            var event2Id = Guid.NewGuid().ToString(); // Opdater dette til at matche event 2's Id fra EventServiceInMemory
+
+            // Mockdata
+            var mockData = new List<Opgave>
             {
-                new User { Id = "1", Navn = "Anna", Kompetence = "Organisering", Rolle = "Medarbejder" },
-                new User { Id = "2", Navn = "Jonas", Kompetence = "Madlavning", Rolle = "Medarbejder" },
-                new User { Id = "3", Navn = "Emma", Kompetence = "Servering", Rolle = "Admin" }
+                new Opgave { Id = Guid.NewGuid().ToString(), Beskrivelse = "Sæt borde op", Status = "Ikke startet", StartTid = DateTime.Now, SlutTid = DateTime.Now.AddHours(2), EventId = event1Id },
+                new Opgave { Id = Guid.NewGuid().ToString(), Beskrivelse = "Gør rent", Status = "Ikke startet", StartTid = DateTime.Now, SlutTid = DateTime.Now.AddHours(3), EventId = event2Id }
             };
 
-            // Mock data for opgaver
-            var event1Id = Guid.NewGuid().ToString();
-            _opgaverByEvent[event1Id] = new List<Opgave>
+            foreach (var opgave in mockData)
             {
-                new Opgave
-                {
-                    OpgaveId = Guid.NewGuid().ToString(),
-                    EventId = event1Id,
-                    MedarbejderIds = new List<string> { "1", "2" },
-                    Navn = "Opsætning af borde",
-                    Status = "Ikke Påbegyndt"
-                }
-            };
+                _opgaver[opgave.Id!] = opgave;
+            }
+        }
+
+        public Task<List<Opgave>> GetAllOpgaverAsync()
+        {
+            return Task.FromResult(_opgaver.Values.ToList());
+        }
+
+        public Task<Opgave?> GetOpgaveByIdAsync(string id)
+        {
+            _opgaver.TryGetValue(id, out var opgave);
+            return Task.FromResult(opgave);
         }
 
         public Task<List<Opgave>> GetOpgaverByEventIdAsync(string eventId)
         {
-            if (_opgaverByEvent.TryGetValue(eventId, out var opgaver))
-            {
-                return Task.FromResult(opgaver);
-            }
-            return Task.FromResult(new List<Opgave>());
+            var opgaverForEvent = _opgaver.Values.Where(o => o.EventId == eventId).ToList();
+            return Task.FromResult(opgaverForEvent);
         }
 
-        public Task<List<User>> GetMedarbejdereAsync()
+        public Task AddOpgaveAsync(Opgave opgave)
         {
-            // Returner kun brugere med rollen "Medarbejder"
-            return Task.FromResult(_users.Where(u => u.Rolle == "Medarbejder").ToList());
-        }
-
-        public Task AddOpgaveAsync(string eventId, Opgave opgave)
-        {
-            if (!_opgaverByEvent.ContainsKey(eventId))
-            {
-                _opgaverByEvent[eventId] = new List<Opgave>();
-            }
-
-            opgave.OpgaveId = Guid.NewGuid().ToString();
-            opgave.EventId = eventId;
-            _opgaverByEvent[eventId].Add(opgave);
+            opgave.Id = Guid.NewGuid().ToString();
+            _opgaver[opgave.Id!] = opgave;
             return Task.CompletedTask;
         }
 
-        public Task UpdateOpgaveAsync(Opgave opgave)
+        public Task UpdateOpgaveAsync(Opgave updatedOpgave)
         {
-            if (!string.IsNullOrEmpty(opgave.EventId) &&
-                _opgaverByEvent.TryGetValue(opgave.EventId, out var opgaver))
+            if (updatedOpgave.Id != null && _opgaver.ContainsKey(updatedOpgave.Id))
             {
-                var index = opgaver.FindIndex(o => o.OpgaveId == opgave.OpgaveId);
-                if (index != -1)
-                {
-                    opgaver[index] = opgave;
-                }
+                _opgaver[updatedOpgave.Id] = updatedOpgave;
             }
             return Task.CompletedTask;
         }
 
-        public Task DeleteOpgaveAsync(string eventId, string opgaveId)
+        public Task DeleteOpgaveAsync(string id)
         {
-            if (_opgaverByEvent.TryGetValue(eventId, out var opgaver))
-            {
-                opgaver.RemoveAll(o => o.OpgaveId == opgaveId);
-            }
+            _opgaver.TryRemove(id, out _);
             return Task.CompletedTask;
         }
     }

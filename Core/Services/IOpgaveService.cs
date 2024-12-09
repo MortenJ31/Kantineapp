@@ -1,13 +1,16 @@
-using Core.Models;
-
 namespace Core.Services
 {
+    using Models;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+
     public interface IOpgaveService
     {
-        Task<List<Opgave>> GetOpgaverByEventIdAsync(string eventId); // Hent alle opgaver for et event
-        Task<List<User>> GetMedarbejdereAsync(); // Hent alle medarbejdere med rollen "Medarbejder"
-        Task AddOpgaveAsync(string eventId, Opgave opgave); // Tilføj en opgave til et event
-        Task UpdateOpgaveAsync(Opgave opgave); // Opdater en opgave
-        Task DeleteOpgaveAsync(string eventId, string opgaveId); // Slet en opgave
+        Task<List<Opgave>> GetAllOpgaverAsync();
+        Task<Opgave?> GetOpgaveByIdAsync(string id);
+        Task<List<Opgave>> GetOpgaverByEventIdAsync(string eventId); // Ny metode
+        Task AddOpgaveAsync(Opgave opgave);
+        Task UpdateOpgaveAsync(Opgave updatedOpgave);
+        Task DeleteOpgaveAsync(string id);
     }
 }

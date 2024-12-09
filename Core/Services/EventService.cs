@@ -1,48 +1,41 @@
 using Core.Models;
 using MongoDB.Driver;
 
-
 namespace Core.Services
 {
     public class EventService : IEventService
     {
-        private readonly IMongoCollection<Event> _eventsCollection;
+        private readonly IMongoCollection<Events> _events;
 
         public EventService(IMongoDatabase database)
         {
-            // Forbind til en MongoDB-samling
-            _eventsCollection = database.GetCollection<Event>("Events");
+            _events = database.GetCollection<Events>("Events");
         }
 
-        public async Task<List<Event>> GetAllEventsAsync()
+        public async Task<List<Events>> GetAllEventsAsync()
         {
-            // Hent alle events fra MongoDB
-            return await _eventsCollection.Find(_ => true).ToListAsync();
+            return await _events.Find(_ => true).ToListAsync();
         }
 
-        public async Task<Event?> GetEventByIdAsync(string id)
+        public async Task<Events?> GetEventByIdAsync(string id)
         {
-            // Find et specifikt event via ID
-            return await _eventsCollection.Find(e => e.Id == id).FirstOrDefaultAsync();
+            return await _events.Find(e => e.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task AddEventAsync(Event newEvent)
+        public async Task AddEventAsync(Events newEvent)
         {
-            // Tilføj et nyt event
             newEvent.Id = Guid.NewGuid().ToString();
-            await _eventsCollection.InsertOneAsync(newEvent);
+            await _events.InsertOneAsync(newEvent);
         }
 
-        public async Task UpdateEventAsync(Event updatedEvent)
+        public async Task UpdateEventAsync(Events updatedEvent)
         {
-            // Opdater et eksisterende event
-            await _eventsCollection.ReplaceOneAsync(e => e.Id == updatedEvent.Id, updatedEvent);
+            await _events.ReplaceOneAsync(e => e.Id == updatedEvent.Id, updatedEvent);
         }
 
         public async Task DeleteEventAsync(string id)
         {
-            // Slet et event
-            await _eventsCollection.DeleteOneAsync(e => e.Id == id);
+            await _events.DeleteOneAsync(e => e.Id == id);
         }
     }
 }
