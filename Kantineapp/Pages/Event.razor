@@ -4,8 +4,10 @@
 @inject IUserService UserService
 
 <div class="container mt-4">
-    <h3 class="mb-4">Events</h3>
-
+    <div class="d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">Events</h3>
+        <button class="btn btn-success btn-sm" @onclick="ToggleAddEvent">Tilføj Event</button>
+    </div>
     @if (events == null)
     {
     <p>Indlæser events...</p>
@@ -143,10 +145,10 @@
                             <label for="taskEmployees" class="form-label">Medarbejdere:</label>
                             @foreach (var employee in employees)
                             {
-                            <div>
-                                <input type="checkbox" id="@employee.Id" value="@employee.Id" @onchange="e => ToggleEmployeeSelection(e, employee.Id)" />
-                                <label for="@employee.Id">@employee.Navn</label>
-                            </div>
+                                <div>
+                                    <input type="checkbox" id="@employee.Id" value="@employee.Id" @onchange="e => ToggleEmployeeSelection(e, employee.Id)" />
+                                    <label for="@employee.Id">@employee.Navn</label>
+                                </div>
                             }
                         </div>
                         <button type="submit" class="btn btn-primary">Tilføj</button>
@@ -156,8 +158,45 @@
         </div>
     </div>
     }
+    
 </div>
-
+@if (showAddEvent)
+{
+<div class="mt-3">
+    <EditForm Model="@newEvent" OnValidSubmit="@AddNewEvent">
+        <div class="mb-3">
+            <label for="newEventName" class="form-label">Navn:</label>
+            <InputText id="newEventName" @bind-Value="newEvent.Name" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="newEventLocation" class="form-label">Lokation:</label>
+            <InputText id="newEventLocation" @bind-Value="newEvent.Lokation" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="newEventDate" class="form-label">Dato:</label>
+            <InputDate id="newEventDate" @bind-Value="newEvent.Dato" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="newEventFood" class="form-label">Madvalg:</label>
+            <InputText id="newEventFood" @bind-Value="newEvent.MadValg" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="newSpecialRequests" class="form-label">Særlige Ønsker:</label>
+            <InputText id="newSpecialRequests" @bind-Value="newEvent.SærligeØnsker" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="newCustomer" class="form-label">Kunde:</label>
+            <InputText id="newCustomer" @bind-Value="newEvent.Kunde" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="newParticipantCount" class="form-label">Deltagerantal:</label>
+            <InputNumber id="newParticipantCount" @bind-Value="newEvent.DeltagerAntal" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Gem</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="ToggleAddEvent">Annuller</button>
+    </EditForm>
+</div>
+}
 @code {
     private List<Events> events = new();
     private Dictionary<string, List<Opgave>> tasksByEvent = new();
@@ -168,6 +207,8 @@
     private string? openEventId = null;
     private bool isEditing = false;
     private bool showTaskModal = false;
+    private Events newEvent = new();
+    private bool showAddEvent = false;
     private HashSet<string> selectedEmployeeIds = new();
 
     protected override async Task OnInitializedAsync()
@@ -284,5 +325,23 @@
         await EventService.DeleteEventAsync(eventId);
         await LoadEvents();
         await LoadTasks();
+    }
+    private void ToggleAddEvent()
+    {
+        showAddEvent = !showAddEvent;
+        if (showAddEvent)
+        {
+            newEvent = new Events
+            {
+                Dato = DateTime.Now
+            };
+        }
+    }
+
+    private async Task AddNewEvent()
+    {
+        await EventService.AddEventAsync(newEvent);
+        await LoadEvents();
+        showAddEvent = false;
     }
 }
