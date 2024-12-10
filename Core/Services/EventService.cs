@@ -1,53 +1,41 @@
+using Core.Models;
+using MongoDB.Driver;
+
 namespace Core.Services
 {
-    using Models;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     public class EventService : IEventService
     {
-        private readonly List<Event> _database = new();
+        private readonly IMongoCollection<Events> _events;
 
-        public Task<List<Event>> GetAllEventsAsync()
+        public EventService(IMongoDatabase database)
         {
-            return Task.FromResult(_database);
+            _events = database.GetCollection<Events>("Events");
         }
 
-        public Task<Event?> GetEventByIdAsync(string id)
+        public async Task<List<Events>> GetAllEventsAsync()
         {
-            var ev = _database.FirstOrDefault(e => e.Id == id);
-            return Task.FromResult(ev);
+            return await _events.Find(_ => true).ToListAsync();
         }
 
-        public Task AddEventAsync(Event newEvent)
+        public async Task<Events?> GetEventByIdAsync(string id)
+        {
+            return await _events.Find(e => e.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task AddEventAsync(Events newEvent)
         {
             newEvent.Id = Guid.NewGuid().ToString();
-            _database.Add(newEvent);
-            return Task.CompletedTask;
+            await _events.InsertOneAsync(newEvent);
         }
 
-        public Task UpdateEventAsync(Event updatedEvent)
+        public async Task UpdateEventAsync(Events updatedEvent)
         {
-            var existing = _database.FirstOrDefault(e => e.Id == updatedEvent.Id);
-            if (existing != null)
-            {
-                existing.Name = updatedEvent.Name;
-                existing.Dato = updatedEvent.Dato;
-                existing.Sted = updatedEvent.Sted;
-                existing.DeltagerAntal = updatedEvent.DeltagerAntal;
-            }
-            return Task.CompletedTask;
+            await _events.ReplaceOneAsync(e => e.Id == updatedEvent.Id, updatedEvent);
         }
 
-        public Task DeleteEventAsync(string id)
+        public async Task DeleteEventAsync(string id)
         {
-            var existing = _database.FirstOrDefault(e => e.Id == id);
-            if (existing != null)
-            {
-                _database.Remove(existing);
-            }
-            return Task.CompletedTask;
+            await _events.DeleteOneAsync(e => e.Id == id);
         }
     }
 }
