@@ -2,10 +2,7 @@
 /shelf/
 /workspace.xml
 # Rider ignored files
-/modules.xml
-/projectSettingsUpdater.xml
-/.idea.Kantineapp.iml
-/contentModel.xml
+
 # Editor-based HTTP Client requests
 /httpRequests/
 # Datasource local storage ignored files
