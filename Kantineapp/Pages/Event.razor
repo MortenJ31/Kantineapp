@@ -209,6 +209,8 @@
     private bool showTaskModal = false;
     private Events newEvent = new();
     private bool showAddEvent = false;
+    private string? openTaskId = null;
+    private Opgave? editTask = null;
     private HashSet<string> selectedEmployeeIds = new();
 
     protected override async Task OnInitializedAsync()
@@ -344,4 +346,5 @@
         await LoadEvents();
         showAddEvent = false;
     }
+    
 }
