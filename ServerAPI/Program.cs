@@ -1,6 +1,18 @@
+using ServerAPI.Repositories;  
+using ServerAPI.Services;      
+
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Repositories
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IOpgaverRepository, OpgaverRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Services
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IOpgaverService, OpgaverService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
