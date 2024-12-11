@@ -1,0 +1,19 @@
+﻿@using Components
+
+@page "/login"
+
+<h1>Velkommen! Log ind for at fortsætte.</h1>
+
+<!-- Importer LoginComponent -->
+<LoginComponent OnLoginSuccess="HandleLoginSuccess" />
+
+
+@code {
+    private void HandleLoginSuccess(bool isLoggedIn)
+    {
+        if (isLoggedIn)
+        {
+            Console.WriteLine("Login lykkedes!"); // Du kan tilføje flere handlinger her
+        }
+    }
+}

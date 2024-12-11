@@ -1,0 +1,70 @@
+﻿@inject ILoginService LoginService
+@using Core.Services.Login
+@inject NavigationManager NavigationManager
+@namespace Components
+
+
+<h3>Login</h3>
+
+<!-- Login form -->
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Brugernavn:</label>
+        <InputText @bind-Value="loginModel.Username" />
+    </div>
+
+    <div>
+        <label>Adgangskode:</label>
+        <InputText @bind-Value="loginModel.Password" type="password" />
+    </div>
+
+    <button type="submit">Log ind</button>
+</EditForm>
+
+<!-- Fejlbesked -->
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p style="color: red;">@errorMessage</p>
+}
+
+
+@code {
+    [Parameter]
+    public EventCallback<bool> OnLoginSuccess { get; set; } // Notifikation til parent
+
+    private LoginModel loginModel = new();
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        var user = await LoginService.AuthenticateAsync(loginModel.Username, loginModel.Password);
+
+        if (user is not null)
+        {
+            errorMessage = null;
+
+            // Notificer parent-komponenten eller login siden
+            await OnLoginSuccess.InvokeAsync(true);
+
+            // Naviger til dashboard
+            NavigationManager.NavigateTo("/dashboard");
+        }
+        else
+        {
+            errorMessage = "Forkert brugernavn eller adgangskode.";
+        }
+    }
+
+    // Login model
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Brugernavn er påkrævet")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Adgangskode er påkrævet")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,26 @@
+﻿@inject Core.Services.Login.ILoginService LoginService
+
+@page "/dashboard"
+
+<h1>Dashboard</h1>
+
+<p>Velkommen til dashboardet!</p>
+
+@if (!string.IsNullOrEmpty(role))
+{
+    <p>Hej, @role!</p>
+}
+else
+{
+    <p>Indlæser brugerens rolle...</p>
+}
+
+@code {
+    private string? role;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await LoginService.GetCurrentUserAsync();
+        role = user?.Role ?? "ukendt";
+    }
+}
