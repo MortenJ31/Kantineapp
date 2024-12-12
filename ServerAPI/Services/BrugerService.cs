@@ -26,9 +26,9 @@ namespace ServerAPI.Services
         {
             return await _brugerRepository.GetUsersByRoleAsync(role);
         }
-        public async Task<Bruger> AddUserAsync(Bruger user)
+        public async Task<Bruger> AddUserAsync(Bruger bruger)
         {
-            return await _brugerRepository.AddUserAsync(user);
+            return await _brugerRepository.AddUserAsync(bruger);
         }
     }
 }

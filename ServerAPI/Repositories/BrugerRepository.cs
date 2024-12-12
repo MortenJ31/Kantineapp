@@ -16,6 +16,16 @@ namespace ServerAPI.Repositories
 
         public async Task<IEnumerable<Bruger>> GetAllUsersAsync()
         {
+
+            //var filter = Builders<Bruger>.Filter.Empty; // Tilsvarende _ => true
+            //var result = await _brugerCollection.Find(filter).ToListAsync();
+
+            //Console.WriteLine($"Antal brugere fundet: {result.Count}");
+            //return result;
+
+
+
+
             //Hent alle brugere fra MongoDB
             return await _brugerCollection.Find(_ => true).ToListAsync();
         }
@@ -32,11 +42,11 @@ namespace ServerAPI.Repositories
         }
         
         
-        public async Task<Bruger> AddUserAsync(Bruger newUser)
+        public async Task<Bruger> AddUserAsync(Bruger bruger)
         {
             //Tilføj en ny bruger til MongoDB
-            await _brugerCollection.InsertOneAsync(newUser);
-            return newUser;
+            await _brugerCollection.InsertOneAsync(bruger);
+            return bruger;
         }
 
 

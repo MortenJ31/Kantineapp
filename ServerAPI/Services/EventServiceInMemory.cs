@@ -15,22 +15,22 @@ namespace ServerAPI.Services
 
         public Task<IEnumerable<Event>> GetAllAsync()
         {
-            return _eventRepository.GetAllAsync();
+            return _eventRepository.GetAllEventsAsync();
         }
 
         public Task<Event?> GetByIdAsync(string id)
         {
-            return _eventRepository.GetByIdAsync(id);
+            return _eventRepository.GetEventByIdAsync(id);
         }
 
         public Task<Event> AddAsync(Event newEvent)
         {
-            return _eventRepository.AddAsync(newEvent);
+            return _eventRepository.AddEventAsync(newEvent);
         }
 
         public Task<bool> DeleteAsync(string id)
         {
-            return _eventRepository.DeleteAsync(id);
+            return _eventRepository.DeleteEventAsync(id);
         }
     }
 }
