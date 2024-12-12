@@ -1,11 +1,17 @@
-using Core.Repositories;
-using Core.Services;
-using Core.Models;
+using ServerAPI.Repositories;
+using ServerAPI.Services;
+using ServerAPI.Models;
 using MongoDB.Driver;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Registrer enum-serializer for Status
+BsonSerializer.RegisterSerializer(typeof(Status), new EnumSerializer<Status>(BsonType.String));
 
 //Tilføj MongoDB-indstillinger fra appsettings.json
 builder.Services.Configure<MongoDbSettings>(
@@ -50,7 +56,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+     {
+         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+     });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

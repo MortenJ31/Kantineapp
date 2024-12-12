@@ -17,22 +17,22 @@ namespace ServerAPI.Services
 
         public async Task<IEnumerable<Event>> GetAllAsync()
         {
-            return await _eventRepository.GetAllAsync();
+            return await _eventRepository.GetAllEventsAsync();
         }
 
         public async Task<Event?> GetByIdAsync(string id)
         {
-            return await _eventRepository.GetByIdAsync(id);
+            return await _eventRepository.GetEventByIdAsync(id);
         }
 
         public async Task<Event> AddAsync(Event nyEvent)
         {
-            return await _eventRepository.AddAsync(nyEvent);
+            return await _eventRepository.AddEventAsync(nyEvent);
         }
 
         public async Task<bool> DeleteAsync(string id)
         {
-            return await _eventRepository.DeleteAsync(id);
+            return await _eventRepository.DeleteEventAsync(id);
         }
     }
 }
