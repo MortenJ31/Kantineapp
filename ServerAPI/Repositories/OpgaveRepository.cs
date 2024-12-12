@@ -31,6 +31,12 @@ namespace ServerAPI.Repositories
 
         public async Task<Opgave> AddOpgaveAsync(Opgave nyOpgave)
         {
+            // Sørg for, at der tildeles et ID
+            if (string.IsNullOrEmpty(nyOpgave.Id))
+            {
+                nyOpgave.Id = await GetNextTaskIdAsync(); // Generer ID, hvis det mangler
+            }
+
             await _opgaveCollection.InsertOneAsync(nyOpgave);
             return nyOpgave;
         }
@@ -60,5 +66,24 @@ namespace ServerAPI.Repositories
            var result = await _opgaveCollection.DeleteOneAsync(o => o.Id == id);
            return result.DeletedCount > 0;
         }
+
+        public async Task<string> GetNextTaskIdAsync()
+        {
+            var highestIdTask = await _opgaveCollection
+                .Find(_ => true)
+                .SortByDescending(t => t.Id)
+                .FirstOrDefaultAsync();
+
+            if (highestIdTask == null || string.IsNullOrEmpty(highestIdTask.Id))
+            {
+                return "opgave1"; // Hvis ingen opgaver findes, start med opgave1
+            }
+
+            var currentId = int.Parse(highestIdTask.Id.Substring(6)); // Fjern 'opgave'
+            var nextId = currentId + 1;
+
+            return $"opgave{nextId}";
+        }
+
     }
 }

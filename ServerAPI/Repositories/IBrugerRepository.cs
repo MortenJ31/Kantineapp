@@ -7,8 +7,8 @@ namespace ServerAPI.Repositories
     {
         Task<IEnumerable<Bruger>> GetAllUsersAsync();
         Task<Bruger?> GetUserByIdAsync(string id);
-        Task<IEnumerable<Bruger>> GetUsersByRoleAsync(Rolle role);
-        Task<Bruger> AddUserAsync(Bruger bruger);
+        Task<IEnumerable<Bruger>> GetUsersByRoleAsync(Rolle Rolle);
+        Task<Bruger> AddUserAsync(Bruger newUser);
         
     }
 }

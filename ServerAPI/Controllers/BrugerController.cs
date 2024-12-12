@@ -32,15 +32,10 @@ public class BrugerController : ControllerBase
 
     //Tilføj ny bruger
     [HttpPost]
-    public async Task<Bruger> Create([FromBody] Bruger bruger)
+    public async Task<Bruger> Create([FromBody] Bruger newUser)
     {
         //return await _brugerRepository.AddUserAsync(newUser);
 
-        if (bruger == null)
-        {
-            throw new ArgumentNullException(nameof(bruger), "Bruger kan ikke være null.");
-        }
-
-        return await _brugerRepository.AddUserAsync(bruger);
+        return await _brugerRepository.AddUserAsync(newUser);
     }
 }

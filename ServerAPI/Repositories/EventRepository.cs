@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using ServerAPI.Services;
 using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography.X509Certificates;
 
 
 namespace ServerAPI.Repositories
@@ -28,6 +29,12 @@ namespace ServerAPI.Repositories
 
         public async Task<Event> AddEventAsync(Event newEvent)
         {
+            if (string.IsNullOrEmpty(newEvent.Id))
+            {
+                //Genererer næste Id
+                newEvent.Id = await GetNextEventIdAsync(); 
+            }
+            
             await _eventCollection.InsertOneAsync(newEvent);
             return newEvent;
         }
@@ -57,6 +64,26 @@ namespace ServerAPI.Repositories
         {
             var result = await _eventCollection.DeleteOneAsync(e => e.Id == id);
             return result.DeletedCount > 0;
+        }
+
+        public async Task<string> GetNextEventIdAsync()
+        {
+            // Hent det dokument med det højeste ID
+            var highestIdEvent = await _eventCollection
+                .Find(_ => true) // Find alle dokumenter
+                .SortByDescending(e => e.Id) // Sortér i faldende rækkefølge efter ID
+                .FirstOrDefaultAsync(); // Tag det første dokument
+
+            if (highestIdEvent == null || string.IsNullOrEmpty(highestIdEvent.Id))
+            {
+                return "event1"; // Hvis ingen events findes, start med event1
+            }
+
+            // Ekstrahér nummeret fra det højeste ID og tæl op
+            var currentId = int.Parse(highestIdEvent.Id.Substring(5)); // Fjern 'event'
+            var nextId = currentId + 1;
+
+            return $"event{nextId}";
         }
     }
 }

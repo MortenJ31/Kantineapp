@@ -1,5 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Runtime.Serialization;
 
 
 namespace Core.Models
@@ -8,7 +9,7 @@ namespace Core.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.String)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         [BsonElement("Navn")]
         public string Navn { get; set; } = "";
         [BsonElement("Email")]
@@ -27,6 +28,7 @@ namespace Core.Models
     {
         Administrator,
         Kantineleder,
+        [EnumMember(Value = "Medarbejder")]
         Medarbejder
     }
 

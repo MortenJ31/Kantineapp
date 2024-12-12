@@ -40,10 +40,12 @@ builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IOpgaveRepository, OpgaveRepository>();
 builder.Services.AddScoped<IBrugerRepository, BrugerRepository>();
 
+/*
 // Services
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IOpgaveService, OpgaveService>();
 builder.Services.AddScoped<IBrugerService, BrugerService>();
+*/
 
 //Cors
 builder.Services.AddCors(options =>
