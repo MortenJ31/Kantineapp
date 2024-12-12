@@ -1,23 +1,59 @@
-﻿@inject NavigationManager NavigationManager
-<nav class="navbar">
+﻿<nav class="navbar">
     <div class="navbar-logo">
         <img src="images/kantine-logo.png" alt="Kantine Logo">
         <span>KantineSystem</span>
     </div>
-    <div class="nav-item" @onclick="NavigateToHome">
-        Hjem
+    <div class="nav-links">
+        <a href="/">Hjem</a>
+        <a href="/profile">Profil</a>
     </div>
 </nav>
 
-
-
-
-
-
-@code {
-    private void NavigateToHome()
-    {
-        // Naviger til Home-siden
-        NavigationManager.NavigateTo("/");
+<style>
+    /* Navbar styles */
+    .navbar {
+        width: 250px;
+        height: 100vh;
+        background-color: #ffffff;
+        border-right: 2px solid #ddd;
+        padding: 1rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
     }
-}
+
+    .navbar-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .navbar-logo img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .nav-links {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .nav-links a {
+        text-decoration: none;
+        color: #333;
+        font-weight: bold;
+        font-size: 1.1rem;
+        transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover {
+        color: #157347;
+    }
+
+
+
+</style>
