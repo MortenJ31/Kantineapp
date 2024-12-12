@@ -23,7 +23,7 @@ namespace Core.Models
         public string EventId { get; set; } = "";
         [BsonElement("AnsvarligForOpgave")]
         [BsonRepresentation(BsonType.String)]
-        public string AnsvarligForOpgave { get; set; }
+        public List<string> AnsvarligForOpgave { get; set; }
         [BsonElement("OpgaveType")]
         [BsonRepresentation(BsonType.String)]
         public OpgaveType OpgaveType { get; set; }
