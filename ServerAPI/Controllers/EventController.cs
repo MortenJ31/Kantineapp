@@ -1,29 +1,45 @@
-using Core.Models;
+using ServerAPI.Models;
 using Microsoft.AspNetCore.Mvc;
-using ServerAPI.Services;
+using ServerAPI.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ServerAPI.Controllers
 {
     [ApiController]
-    [Route("api/events")]
+    [Route("api/[controller]")]
     public class EventController : ControllerBase
     {
-        private readonly IEventService _service;
+        private readonly IEventRepository _eventRepository;
 
-        public EventController(IEventService service) => _service = service;
+        public EventController(IEventRepository eventRepository)
+        {
+            _eventRepository = eventRepository;
+        }
 
         [HttpGet]
-        public Task<IEnumerable<Event>> GetAll() => _service.GetAllAsync();
+        public async Task<IEnumerable<Event>> GetAll()
+        {
+            return await _eventRepository.GetAllAsync();
+        }
+       
 
         [HttpGet("{id}")]
-        public Task<Event> GetById(int id) => _service.GetByIdAsync(id);
+        public async Task<Event?> GetById(string id)
+        {
+            return await _eventRepository.GetByIdAsync(id);
+        }
 
         [HttpPost]
-        public Task<Event> Add([FromBody] Event newEvent) => _service.AddAsync(newEvent);
+        public async Task<Event> Create([FromBody] Event newEvent)
+        {
+            return await _eventRepository.AddAsync(newEvent);
+        }
 
         [HttpDelete("{id}")]
-        public Task<bool> Delete(int id) => _service.DeleteAsync(id);
+        public async Task<bool> Delete(string id)
+        {
+           return await _eventRepository.DeleteAsync(id);
+        }
     }
 }

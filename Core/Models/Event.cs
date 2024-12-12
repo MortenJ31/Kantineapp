@@ -1,8 +1,13 @@
-namespace Core.Models
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace ServerAPI.Models
 {
-    public class Events
+    public class Event
     {
-        public string? Id { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
+        public string Id { get; set; }
         public string Name { get; set; } = "";
         public DateTime Dato { get; set; }
         public string Lokation { get; set; } = "";
@@ -10,6 +15,7 @@ namespace Core.Models
         public string MadValg { get; set; } = "";
         public string SærligeØnsker { get; set; } = "";
         public string Kunde { get; set; } = "";
-        public List<Opgave> Opgaver { get; set; } = new(); 
+        [BsonRepresentation(BsonType.String)]
+        public string BrugerID { get; set; }
     }
 }
