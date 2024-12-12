@@ -35,9 +35,9 @@ namespace ServerAPI.Services
             return await _opgaveRepository.AddOpgaveAsync(nyOpgave);
         }
 
-        public async Task UpdateOpgaveAsync(Opgave updatedOpgave)
+        public async Task UpdateOpgaveAsync(string id, Opgave updatedOpgave)
         {
-            await _opgaveRepository.UpdateOpgaveAsync(updatedOpgave);
+            await _opgaveRepository.UpdateOpgaveAsync(id, updatedOpgave);
         }
 
         public async Task<bool> DeleteOpgaveAsync(string id)

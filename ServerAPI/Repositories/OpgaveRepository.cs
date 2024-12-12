@@ -40,6 +40,21 @@ namespace ServerAPI.Repositories
             await _opgaveCollection.ReplaceOneAsync(o => o.Id == updateOpgave.Id, updateOpgave);
         }
 
+        public async Task<Opgave?> UpdateOpgaveAsync(string id, Opgave updatedOpgave)
+        {
+            var result = await _opgaveCollection.ReplaceOneAsync(
+                o => o.Id == id,
+                updatedOpgave
+            );
+
+            if (result.MatchedCount == 0)
+            {
+                return null; // Opgave blev ikke fundet
+            }
+
+            return updatedOpgave;
+        }
+
         public async Task<bool> DeleteOpgaveAsync(string id)
         {
            var result = await _opgaveCollection.DeleteOneAsync(o => o.Id == id);
