@@ -37,6 +37,16 @@ namespace ServerAPI.Controllers
             return await _eventRepository.AddEventAsync(newEvent);
         }
 
+        [HttpPut("{id}")]
+        public async Task<Event?> Update(string id, [FromBody] Event updatedEvent)
+        {
+            if (id != updatedEvent.Id)
+            {
+                throw new ArgumentException("EventID stemmer ikke overens");
+            }
+            return await _eventRepository.UpdateEventAsync(id, updatedEvent);
+        }
+
         // Slet event med ID
         [HttpDelete("{id}")]
         public async Task<bool> Delete(string id)
