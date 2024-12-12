@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using ServerAPI.Models;
+using Core.Models;
 
 namespace ServerAPI.Services
 {    

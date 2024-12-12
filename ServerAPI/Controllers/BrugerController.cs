@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ServerAPI.Repositories;
-using ServerAPI.Models;
+using Core.Models;
 
 
 namespace ServerAPI.Controllers;

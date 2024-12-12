@@ -1,7 +1,6 @@
-using ServerAPI.Models;
+using Core.Models;
 using ServerAPI.Repositories;
 
-using System.Collections.Concurrent;
 
 namespace ServerAPI.Services
 {

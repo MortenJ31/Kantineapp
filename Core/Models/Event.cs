@@ -1,13 +1,13 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace ServerAPI.Models
+namespace Core.Models
 {
     public class Event
     {
         [BsonId]
         [BsonRepresentation(BsonType.String)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         public string Name { get; set; } = "";
         public DateTime Dato { get; set; }
         public string Lokation { get; set; } = "";

@@ -1,4 +1,4 @@
-using ServerAPI.Models;
+using Core.Models;
 using MongoDB.Driver;
 using ServerAPI.Repositories;
 

@@ -1,6 +1,6 @@
-using ServerAPI.Repositories;
-using ServerAPI.Services;
-using ServerAPI.Models;
+using Core.Repositories;
+using Core.Services;
+using Core.Models;
 using MongoDB.Driver;
 using Microsoft.Extensions.Options;
 

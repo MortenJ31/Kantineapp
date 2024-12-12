@@ -1,4 +1,4 @@
-using ServerAPI.Models;
+using Core.Models;
 using MongoDB.Driver;
 using ServerAPI.Services;
 
@@ -9,7 +9,7 @@ namespace ServerAPI.Repositories
     {
         private readonly IMongoCollection<Opgave> _opgaveCollection;
 
-        public  OpgaveRepository(MongoDbService mongoDbService)
+        public OpgaveRepository(MongoDbService mongoDbService)
         {
             _opgaveCollection = mongoDbService.GetOpgaveCollection();
         }

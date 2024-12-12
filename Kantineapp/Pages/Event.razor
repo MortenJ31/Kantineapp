@@ -198,16 +198,16 @@
 </div>
 }
 @code {
-    private List<ServerAPI.Models.Event> events = new();
+    private List<Core.Models.Event> events = new();
     private Dictionary<string, List<Opgave>> tasksByEvent = new();
-    private ServerAPI.Models.Event? selectedEvent;
+    private Core.Models.Event? selectedEvent;
     private Opgave newTask = new();
-    private ServerAPI.Models.Event? editEvent;
+    private Core.Models.Event? editEvent;
     private List<Bruger> employees = new();
     private string? openEventId = null;
     private bool isEditing = false;
     private bool showTaskModal = false;
-    private ServerAPI.Models.Event newEvent = new();
+    private Core.Models.Event newEvent = new();
     private bool showAddEvent = false;
     private string? openTaskId = null;
     private Opgave? editTask = null;
@@ -222,7 +222,7 @@
 
     private async Task LoadEvents()
     {
-            events = await EventService.GetAllEventsAsync() ?? new List<ServerAPI.Models.Event>();
+            events = await EventService.GetAllEventsAsync() ?? new List<Core.Models.Event>();
     }
 
     private async Task LoadTasks()
@@ -304,7 +304,7 @@
     }
 
 
-    private void OpenAddTaskModal(ServerAPI.Models.Event ev)
+    private void OpenAddTaskModal(Core.Models.Event ev)
     {
         selectedEvent = ev;
         newTask = new Opgave
@@ -333,7 +333,7 @@
         showAddEvent = !showAddEvent;
         if (showAddEvent)
         {
-                newEvent = new ServerAPI.Models.Event
+                newEvent = new Core.Models.Event
             {
                 Dato = DateTime.Now
             };

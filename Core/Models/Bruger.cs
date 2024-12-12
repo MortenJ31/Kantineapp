@@ -1,8 +1,8 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System.Collections.Generic;
 
-namespace ServerAPI.Models
+
+namespace Core.Models
 {
     public class Bruger
     {

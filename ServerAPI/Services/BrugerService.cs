@@ -1,5 +1,4 @@
-using ServerAPI.Models;
-using MongoDB.Driver;
+using Core.Models;
 using ServerAPI.Repositories;
 
 namespace ServerAPI.Services

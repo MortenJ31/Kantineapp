@@ -1,8 +1,7 @@
-using ServerAPI.Models;
+using Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using ServerAPI.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace ServerAPI.Controllers
 {
