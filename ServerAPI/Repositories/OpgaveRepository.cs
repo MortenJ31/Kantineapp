@@ -1,4 +1,4 @@
-using ServerAPI.Models;
+using Core.Models;
 using MongoDB.Driver;
 using ServerAPI.Services;
 
@@ -9,7 +9,7 @@ namespace ServerAPI.Repositories
     {
         private readonly IMongoCollection<Opgave> _opgaveCollection;
 
-        public  OpgaveRepository(MongoDbService mongoDbService)
+        public OpgaveRepository(MongoDbService mongoDbService)
         {
             _opgaveCollection = mongoDbService.GetOpgaveCollection();
         }
@@ -31,6 +31,12 @@ namespace ServerAPI.Repositories
 
         public async Task<Opgave> AddOpgaveAsync(Opgave nyOpgave)
         {
+            // Sørg for, at der tildeles et ID
+            if (string.IsNullOrEmpty(nyOpgave.Id))
+            {
+                nyOpgave.Id = await GetNextTaskIdAsync(); // Generer ID, hvis det mangler
+            }
+
             await _opgaveCollection.InsertOneAsync(nyOpgave);
             return nyOpgave;
         }
@@ -40,10 +46,44 @@ namespace ServerAPI.Repositories
             await _opgaveCollection.ReplaceOneAsync(o => o.Id == updateOpgave.Id, updateOpgave);
         }
 
+        public async Task<Opgave?> UpdateOpgaveAsync(string id, Opgave updatedOpgave)
+        {
+            var result = await _opgaveCollection.ReplaceOneAsync(
+                o => o.Id == id,
+                updatedOpgave
+            );
+
+            if (result.MatchedCount == 0)
+            {
+                return null; // Opgave blev ikke fundet
+            }
+
+            return updatedOpgave;
+        }
+
         public async Task<bool> DeleteOpgaveAsync(string id)
         {
            var result = await _opgaveCollection.DeleteOneAsync(o => o.Id == id);
            return result.DeletedCount > 0;
         }
+
+        public async Task<string> GetNextTaskIdAsync()
+        {
+            var highestIdTask = await _opgaveCollection
+                .Find(_ => true)
+                .SortByDescending(t => t.Id)
+                .FirstOrDefaultAsync();
+
+            if (highestIdTask == null || string.IsNullOrEmpty(highestIdTask.Id))
+            {
+                return "opgave1"; // Hvis ingen opgaver findes, start med opgave1
+            }
+
+            var currentId = int.Parse(highestIdTask.Id.Substring(6)); // Fjern 'opgave'
+            var nextId = currentId + 1;
+
+            return $"opgave{nextId}";
+        }
+
     }
 }

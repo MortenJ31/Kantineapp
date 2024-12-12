@@ -1,8 +1,7 @@
-using ServerAPI.Models;
+using Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using ServerAPI.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace ServerAPI.Controllers
 {
@@ -34,6 +33,18 @@ namespace ServerAPI.Controllers
         {
             return await _opgaveRepository.AddOpgaveAsync(nyOpgave);
         }
+
+        [HttpPut("{id}")]
+        public async Task<Opgave?> Update(string id, [FromBody] Opgave updatedOpgave)
+        {
+            if (id != updatedOpgave.Id)
+            {
+                throw new ArgumentException("Opgave ID stemmer ikke overens.");
+            }
+
+            return await _opgaveRepository.UpdateOpgaveAsync(id, updatedOpgave);
+        }
+
 
         [HttpDelete("{id}")]
         public async Task<bool> Delete(string id)

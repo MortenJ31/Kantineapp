@@ -1,4 +1,4 @@
-using ServerAPI.Models;
+using Core.Models;
 
 
 namespace ServerAPI.Repositories
@@ -9,7 +9,7 @@ namespace ServerAPI.Repositories
         Task<Opgave?> GetOpgaveByIdAsync(string id);
         Task<IEnumerable<Opgave>> GetOpgaveByEventIdAsync(string eventId);
         Task<Opgave> AddOpgaveAsync(Opgave nyOpgave);
-        Task UpdateOpgaveAsync(Opgave updatedOpgave);
+        Task<Opgave?> UpdateOpgaveAsync(string id, Opgave updatedOpgave);
         Task<bool> DeleteOpgaveAsync(string id);
     }
 }

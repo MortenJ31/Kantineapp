@@ -1,14 +1,12 @@
 using Core.Models;
 
-
-namespace ServerAPI.Repositories
+namespace Kantineapp.Services
 {
-    public interface IBrugerRepository
+    public interface IBrugerService
     {
         Task<IEnumerable<Bruger>> GetAllUsersAsync();
         Task<Bruger?> GetUserByIdAsync(string id);
         Task<IEnumerable<Bruger>> GetUsersByRoleAsync(Rolle Rolle);
-        Task<Bruger> AddUserAsync(Bruger newUser);
-        
+        Task<Bruger> AddUserAsync(Bruger bruger);
     }
 }

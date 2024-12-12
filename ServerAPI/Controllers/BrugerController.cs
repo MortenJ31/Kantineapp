@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ServerAPI.Repositories;
-using ServerAPI.Models;
+using Core.Models;
 
 
 namespace ServerAPI.Controllers;
@@ -34,6 +34,8 @@ public class BrugerController : ControllerBase
     [HttpPost]
     public async Task<Bruger> Create([FromBody] Bruger newUser)
     {
+        //return await _brugerRepository.AddUserAsync(newUser);
+
         return await _brugerRepository.AddUserAsync(newUser);
     }
 }
