@@ -1,18 +1,54 @@
-using ServerAPI.Repositories;  
-using ServerAPI.Services;      
+using ServerAPI.Repositories;
+using ServerAPI.Services;
+using ServerAPI.Models;
+using MongoDB.Driver;
+using Microsoft.Extensions.Options;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
+//Tilføj MongoDB-indstillinger fra appsettings.json
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection("MongoDbSettings"));
+
+//Registrerer MongoClient som singleton
+builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return new MongoClient(settings.ConnectionString);
+});
+
+//Registrerer IMongoDatabase som singleton
+builder.Services.AddSingleton<IMongoDatabase>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return client.GetDatabase(settings.DatabaseName);
+});
+
+//Registrerer MongoDbService
+builder.Services.AddSingleton<MongoDbService>();
+
 // Repositories
 builder.Services.AddScoped<IEventRepository, EventRepository>();
-builder.Services.AddScoped<IOpgaverRepository, OpgaverRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IOpgaveRepository, OpgaveRepository>();
+builder.Services.AddScoped<IBrugerRepository, BrugerRepository>();
 
 // Services
 builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IOpgaverService, OpgaverService>();
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IOpgaveService, OpgaveService>();
+builder.Services.AddScoped<IBrugerService, BrugerService>();
+
+//Cors
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -27,6 +63,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
+app.UseCors("AllowAllOrigins");
 
 app.UseHttpsRedirection();
 

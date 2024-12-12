@@ -198,16 +198,16 @@
 </div>
 }
 @code {
-    private List<Events> events = new();
+    private List<ServerAPI.Models.Event> events = new();
     private Dictionary<string, List<Opgave>> tasksByEvent = new();
-    private Events? selectedEvent;
+    private ServerAPI.Models.Event? selectedEvent;
     private Opgave newTask = new();
-    private Events? editEvent;
-    private List<User> employees = new();
+    private ServerAPI.Models.Event? editEvent;
+    private List<Bruger> employees = new();
     private string? openEventId = null;
     private bool isEditing = false;
     private bool showTaskModal = false;
-    private Events newEvent = new();
+    private ServerAPI.Models.Event newEvent = new();
     private bool showAddEvent = false;
     private string? openTaskId = null;
     private Opgave? editTask = null;
@@ -222,7 +222,7 @@
 
     private async Task LoadEvents()
     {
-        events = await EventService.GetAllEventsAsync() ?? new List<Events>();
+            events = await EventService.GetAllEventsAsync() ?? new List<ServerAPI.Models.Event>();
     }
 
     private async Task LoadTasks()
@@ -236,7 +236,7 @@
 
     private async Task LoadEmployees()
     {
-        employees = await UserService.GetUsersByRoleAsync(Rolle.Medarbejder) ?? new List<User>();
+        employees = await UserService.GetUsersByRoleAsync(Rolle.Medarbejder) ?? new List<Bruger>();
     }
 
     private void ToggleTaskList(string eventId)
@@ -304,7 +304,7 @@
     }
 
 
-    private void OpenAddTaskModal(Events ev)
+    private void OpenAddTaskModal(ServerAPI.Models.Event ev)
     {
         selectedEvent = ev;
         newTask = new Opgave
@@ -333,7 +333,7 @@
         showAddEvent = !showAddEvent;
         if (showAddEvent)
         {
-            newEvent = new Events
+                newEvent = new ServerAPI.Models.Event
             {
                 Dato = DateTime.Now
             };

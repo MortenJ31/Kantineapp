@@ -1,34 +1,43 @@
-using Core.Models;
+using ServerAPI.Models;
+using MongoDB.Driver;
+using ServerAPI.Services;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 
 namespace ServerAPI.Repositories
 {
     public class EventRepository : IEventRepository
     {
-        private readonly List<Event> _events = new()
+        private readonly IMongoCollection<Event> _eventCollection;
+
+        public EventRepository(MongoDbService mongoDbService)
         {
-            new Event { Id = 1, Name = "Company Party", Date = DateTime.Now, Location = "Main Hall" },
-            new Event { Id = 2, Name = "Team Meeting", Date = DateTime.Now.AddDays(1), Location = "Conference Room" }
-        };
-
-        public Task<IEnumerable<Event>> GetAllAsync() => Task.FromResult(_events.AsEnumerable());
-
-        public Task<Event> GetByIdAsync(int id) => Task.FromResult(_events.FirstOrDefault(e => e.Id == id));
-
-        public Task<Event> AddAsync(Event newEvent)
-        {
-            newEvent.Id = _events.Max(e => e.Id) + 1; // Auto-increment ID
-            _events.Add(newEvent);
-            return Task.FromResult(newEvent);
+            _eventCollection = mongoDbService.GetEventCollection();
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public async Task<IEnumerable<Event>> GetAllAsync()
         {
-            var eventToRemove = _events.FirstOrDefault(e => e.Id == id);
-            if (eventToRemove == null) return Task.FromResult(false);
-
-            _events.Remove(eventToRemove);
-            return Task.FromResult(true);
+            return await _eventCollection.Find(_ => true).ToListAsync();
         }
+
+        public async Task<Event?> GetByIdAsync(string id)
+        {
+            return await _eventCollection.Find(e => e.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task<Event> AddAsync(Event nyEvent)
+        {
+            await _eventCollection.InsertOneAsync(nyEvent);
+            return nyEvent;
+        }
+
+        public async Task<bool> DeleteAsync(string id)
+        {
+            var result = await _eventCollection.DeleteOneAsync(e => e.Id == id);
+            return result.DeletedCount > 0;
+        }
+
+       
     }
 }
