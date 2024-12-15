@@ -30,12 +30,14 @@ namespace ServerAPI.Repositories
 
         public async Task<Opgave> AddOpgaveAsync(Opgave nyOpgave)
         {
-            nyOpgave.Id = Guid.NewGuid().ToString();
+            // Generer et sekventielt ID i formatet opgave1, opgave2 osv.
+            if (string.IsNullOrEmpty(nyOpgave.Id))
+            {
+                nyOpgave.Id = await GetNextTaskIdAsync();
+            }
             await _opgaveCollection.InsertOneAsync(nyOpgave);
             return nyOpgave;
         }
-
-
 
         public async Task UpdateOpgaveAsync(Opgave updateOpgave)
         {
@@ -61,6 +63,26 @@ namespace ServerAPI.Repositories
         {
             var result = await _opgaveCollection.DeleteOneAsync(o => o.Id == id);
             return result.DeletedCount > 0;
+        }
+
+        private async Task<string> GetNextTaskIdAsync()
+        {
+            // Find det højeste eksisterende ID og generer det næste
+            var highestIdTask = await _opgaveCollection
+                .Find(_ => true)
+                .SortByDescending(t => t.Id)
+                .FirstOrDefaultAsync();
+
+            if (highestIdTask == null || string.IsNullOrEmpty(highestIdTask.Id))
+            {
+                return "opgave1"; // Start fra opgave1, hvis ingen opgaver findes
+            }
+
+            // Ekstraher det numeriske ID (efter 'opgave')
+            var currentId = int.Parse(highestIdTask.Id.Substring(6)); // Fjern 'opgave'
+            var nextId = currentId + 1;
+
+            return $"opgave{nextId}";
         }
     }
 }

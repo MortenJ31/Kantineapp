@@ -31,7 +31,6 @@ namespace ServerAPI.Controllers
         [HttpPost]
         public async Task<Opgave> Create([FromBody] Opgave nyOpgave)
         {
-            nyOpgave.Id = null;
             
             return await _opgaveRepository.AddOpgaveAsync(nyOpgave);
         }
