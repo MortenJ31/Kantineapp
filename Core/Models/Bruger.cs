@@ -9,7 +9,7 @@ namespace Core.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.String)]
-        public string? Id { get; set; }  = "defaultUserId";
+        public string? Id { get; set; }  = "";
         [BsonElement("Navn")]
         public string Navn { get; set; } = "";
         [BsonElement("Email")]

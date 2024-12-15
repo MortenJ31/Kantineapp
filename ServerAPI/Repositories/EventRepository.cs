@@ -31,24 +31,32 @@ namespace ServerAPI.Repositories
         {
             if (string.IsNullOrEmpty(newEvent.Id))
             {
-                //Genererer næste Id
-                newEvent.Id = await GetNextEventIdAsync(); 
+                newEvent.Id = await GetNextEventIdAsync();
             }
-            
-            await _eventCollection.InsertOneAsync(newEvent);
-            return newEvent;
+
+            try
+            {
+                await _eventCollection.InsertOneAsync(newEvent);
+                return newEvent;
+            }
+            catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                Console.WriteLine($"Duplikat ID-fejl: {ex.Message}");
+                throw new Exception("Event ID allerede eksisterer. PrÃ¸v igen.");
+            }
         }
+
 
         public async Task<Event?> UpdateEventAsync(string id, Event updatedEvent)
         {
-           //Kontrollér, at id stemmer overens med updatedEvent.id
+           //Kontrollï¿½r, at id stemmer overens med updatedEvent.id
             if (id != updatedEvent.Id)
             {
                 throw new ArgumentException("EventId stemmer ikke overens");
             }
             
 
-            //udfør opdateringen
+            //udfï¿½r opdateringen
             var result = await _eventCollection.ReplaceOneAsync(
                 e => e.Id == id, updatedEvent);
 
@@ -68,22 +76,26 @@ namespace ServerAPI.Repositories
 
         public async Task<string> GetNextEventIdAsync()
         {
-            // Hent det dokument med det højeste ID
-            var highestIdEvent = await _eventCollection
-                .Find(_ => true) // Find alle dokumenter
-                .SortByDescending(e => e.Id) // Sortér i faldende rækkefølge efter ID
-                .FirstOrDefaultAsync(); // Tag det første dokument
+            // Find det hÃ¸jeste ID i formatet "eventX"
+            var allIds = await _eventCollection
+                .Find(_ => true)
+                .Project(e => e.Id) // Hent kun ID-feltet
+                .ToListAsync();
 
-            if (highestIdEvent == null || string.IsNullOrEmpty(highestIdEvent.Id))
-            {
-                return "event1"; // Hvis ingen events findes, start med event1
-            }
+            // Filtrer ID'er, der starter med "event" og slutter med et tal
+            var maxId = allIds
+                .Where(id => id != null && id.StartsWith("event") && id.Length > 5)
+                .Select(id =>
+                {
+                    var numPart = id.Substring(5); // Fjern "event"
+                    return int.TryParse(numPart, out var num) ? num : 0; // Parse det numeriske
+                })
+                .DefaultIfEmpty(0) // Hvis ingen ID'er findes, brug 0
+                .Max(); // Find det hÃ¸jeste ID
 
-            // Ekstrahér nummeret fra det højeste ID og tæl op
-            var currentId = int.Parse(highestIdEvent.Id.Substring(5)); // Fjern 'event'
-            var nextId = currentId + 1;
-
-            return $"event{nextId}";
+            // Generer det nÃ¦ste ID
+            return $"event{maxId + 1}";
         }
+
     }
 }

@@ -34,14 +34,15 @@ namespace ServerAPI.Controllers
         [HttpPost]
         public async Task<Event> Create([FromBody] Event newEvent)
         {
-            // Midlertidigt sæt BrugerID, hvis det ikke allerede er sat
+            // Sæt en midlertidig BrugerID, hvis det er null
             if (string.IsNullOrEmpty(newEvent.BrugerID))
             {
-                newEvent.BrugerID = "defaultBrugerId"; // Sæt en standardværdi her
+                newEvent.BrugerID = "defaultBrugerId"; // Midlertidigt ID for test og udvikling
             }
 
             return await _eventRepository.AddEventAsync(newEvent);
         }
+
 
 
         [HttpPut("{id}")]
