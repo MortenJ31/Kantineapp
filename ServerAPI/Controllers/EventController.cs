@@ -30,12 +30,19 @@ namespace ServerAPI.Controllers
             return await _eventRepository.GetEventByIdAsync(id);
         }
 
-        // Tilf�j ny event
+        // Tilf�j ny event
         [HttpPost]
         public async Task<Event> Create([FromBody] Event newEvent)
         {
+            // Midlertidigt sæt BrugerID, hvis det ikke allerede er sat
+            if (string.IsNullOrEmpty(newEvent.BrugerID))
+            {
+                newEvent.BrugerID = "defaultBrugerId"; // Sæt en standardværdi her
+            }
+
             return await _eventRepository.AddEventAsync(newEvent);
         }
+
 
         [HttpPut("{id}")]
         public async Task<Event?> Update(string id, [FromBody] Event updatedEvent)

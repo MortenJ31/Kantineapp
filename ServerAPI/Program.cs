@@ -6,25 +6,25 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson;
-
-
+using System.Text.Json.Serialization;
+using Core.Models;
 var builder = WebApplication.CreateBuilder(args);
 
-// Registrer enum-serializer for Status
+// Registrer enum-serializers for Status og Rolle
 BsonSerializer.RegisterSerializer(typeof(Status), new EnumSerializer<Status>(BsonType.String));
+BsonSerializer.RegisterSerializer(typeof(Rolle), new EnumSerializer<Rolle>(BsonType.String));
 
-//Tilføj MongoDB-indstillinger fra appsettings.json
+// TilfÃ¸j MongoDB-indstillinger fra appsettings.json
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
-//Registrerer MongoClient som singleton
+// Registrer MongoDB-komponenter som services
 builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
     return new MongoClient(settings.ConnectionString);
 });
 
-//Registrerer IMongoDatabase som singleton
 builder.Services.AddSingleton<IMongoDatabase>(sp =>
 {
     var client = sp.GetRequiredService<IMongoClient>();
@@ -32,22 +32,14 @@ builder.Services.AddSingleton<IMongoDatabase>(sp =>
     return client.GetDatabase(settings.DatabaseName);
 });
 
-//Registrerer MongoDbService
 builder.Services.AddSingleton<MongoDbService>();
 
-// Repositories
+// Registrer repositories
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IOpgaveRepository, OpgaveRepository>();
 builder.Services.AddScoped<IBrugerRepository, BrugerRepository>();
 
-/*
-// Services
-builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IOpgaveService, OpgaveService>();
-builder.Services.AddScoped<IBrugerService, BrugerService>();
-*/
-
-//Cors
+// CORS-politik
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins", policy =>
@@ -58,29 +50,28 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Konfigurer controllers med JSON-indstillinger
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
-     {
-         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-     });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+// Swagger-konfiguration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Swagger UI og middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-
 app.UseCors("AllowAllOrigins");
-
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();

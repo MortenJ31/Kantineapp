@@ -17,30 +17,30 @@ namespace Kantineapp.Services
 
         public async Task<IEnumerable<Event>> GetAllEventsAsync()
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<Event>>("api/Event");
+            return await _httpClient.GetFromJsonAsync<IEnumerable<Event>>("api/events");
         }
 
         public async Task<Event?> GetEventByIdAsync(string id)
         {
-            return await _httpClient.GetFromJsonAsync<Event>($"api/Event/{id}");
+            return await _httpClient.GetFromJsonAsync<Event>($"api/events/{id}");
         }
 
         public async Task<Event> AddEventAsync(Event newEvent)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/Event", newEvent);
+            var response = await _httpClient.PostAsJsonAsync("api/events", newEvent);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<Event>();
         }
 
         public async Task<bool> DeleteEventAsync(string id)
         {
-            var response = await _httpClient.DeleteAsync($"api/Event/{id}");
+            var response = await _httpClient.DeleteAsync($"api/events/{id}");
             return response.IsSuccessStatusCode;
         }
 
         public async Task<Event?> UpdateEventAsync(string id, Event updatedEvent)
         {
-            var response = await _httpClient.PutAsJsonAsync($"api/Event/{id}", updatedEvent);
+            var response = await _httpClient.PutAsJsonAsync($"api/events/{id}", updatedEvent);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<Event>();
         }

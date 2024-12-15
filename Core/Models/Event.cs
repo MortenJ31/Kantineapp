@@ -25,6 +25,6 @@ namespace Core.Models
         public string Kunde { get; set; } = "";
         [BsonElement("BrugerID")]
         [BsonRepresentation(BsonType.String)]
-        public string BrugerID { get; set; }
+        public string? BrugerID { get; set; }
     }
 }

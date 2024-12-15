@@ -23,10 +23,11 @@ namespace Kantineapp.Services
             return await _httpClient.GetFromJsonAsync<Bruger>($"api/Bruger/{id}");
         }
 
-        public async Task<IEnumerable<Bruger>> GetUsersByRoleAsync(Rolle Rolle)
+        public async Task<IEnumerable<Bruger>> GetUsersByRoleAsync(Rolle rolle)
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<Bruger>>($"api/Bruger/rolle/{Rolle}");
+            return await _httpClient.GetFromJsonAsync<IEnumerable<Bruger>>($"api/Bruger/rolle/{rolle}");
         }
+
 
         public async Task<Bruger> AddUserAsync(Bruger newBruger)
         {

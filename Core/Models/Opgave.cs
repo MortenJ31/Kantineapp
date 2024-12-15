@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Runtime.Serialization;
-
+using System.Text.Json.Serialization;
 namespace Core.Models
 {
     public class Opgave
@@ -29,7 +29,7 @@ namespace Core.Models
         public OpgaveType OpgaveType { get; set; }
     }
 }
-
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Status
 {
     [EnumMember(Value = "IkkePåbegyndt")]
@@ -45,6 +45,7 @@ public enum Status
     Afsluttet
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum OpgaveType
 {
     Madlavning,

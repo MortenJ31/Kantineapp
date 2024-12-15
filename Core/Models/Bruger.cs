@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Runtime.Serialization;
-
+using System.Text.Json.Serialization;
 
 namespace Core.Models
 {
@@ -16,6 +16,7 @@ namespace Core.Models
         public string Email { get; set; } = "";
         [BsonElement("Adgangskode")]
         public string Adgangskode { get; set; } = "";
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         [BsonElement("Rolle")]
         [BsonRepresentation(BsonType.String)]
         public Rolle Rolle { get; set; }
@@ -26,10 +27,15 @@ namespace Core.Models
     }
     public enum Rolle
     {
+        [EnumMember(Value = "Administrator")]
         Administrator,
+
+        [EnumMember(Value = "Kantineleder")]
         Kantineleder,
+
         [EnumMember(Value = "Medarbejder")]
         Medarbejder
     }
+
 
 }
