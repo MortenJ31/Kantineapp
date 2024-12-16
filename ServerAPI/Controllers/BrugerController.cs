@@ -34,18 +34,14 @@ public class BrugerController : ControllerBase
     [HttpPost]
     public async Task<Bruger> Create([FromBody] Bruger newUser)
     {
-        //return await _brugerRepository.AddUserAsync(newUser);
-
         return await _brugerRepository.AddUserAsync(newUser);
     }
-    [HttpGet("rolle/{rolle}")]
-    public async Task<IActionResult> GetByRole(Rolle rolle)
-    {
-        var usersByRole = await _brugerRepository.GetUsersByRoleAsync(rolle);
 
-        return usersByRole.Any()
-            ? Ok(usersByRole)
-            : NotFound($"Ingen brugere fundet med rollen: {rolle}");
+    // Hent brugere baseret på rolle
+    [HttpGet("rolle/{rolle}")]
+    public async Task<IEnumerable<Bruger>> GetByRole(Rolle rolle)
+    {
+        return await _brugerRepository.GetUsersByRoleAsync(rolle);
     }
 
 }
