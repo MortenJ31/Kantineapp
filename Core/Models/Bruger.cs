@@ -21,9 +21,9 @@ namespace Core.Models
         [BsonRepresentation(BsonType.String)]
         public Rolle Rolle { get; set; }
         [BsonElement("MineKompetencer")]
-        public List<string> MineKompetencer { get; set; }
+        public List<string> MineKompetencer { get; set; } = new List<string>();
         [BsonElement("Notifikationsmetode")]
-        public string Notifikationsmetode { get; set; }
+        public string Notifikationsmetode { get; set; } = string.Empty;
     }
     public enum Rolle
     {

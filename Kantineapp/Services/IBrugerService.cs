@@ -8,5 +8,6 @@ namespace Kantineapp.Services
         Task<Bruger?> GetUserByIdAsync(string id);
         Task<IEnumerable<Bruger>> GetUsersByRoleAsync(Rolle Rolle);
         Task<Bruger> AddUserAsync(Bruger bruger);
+        
     }
 }

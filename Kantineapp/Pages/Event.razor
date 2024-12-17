@@ -1,4 +1,4 @@
-@page "/"
+@page "/events"
 @using Kantineapp.Services
 @inject IEventService EventService
 @inject IOpgaveService OpgaveService
@@ -73,22 +73,22 @@
                                 <strong>Ansvarlige Medarbejdere:</strong>
                                 @if (task.AnsvarligForOpgave != null && task.AnsvarligForOpgave.Any())
                                 {
-                                    <ul class="mt-2">
-                                        @foreach (var medarbejderId in task.AnsvarligForOpgave)
-                                        {
-                                            var medarbejder = employees.FirstOrDefault(e => e.Id == medarbejderId);
-                                            if (medarbejder != null)
-                                            {
-                                                <li>
-                                                    @medarbejder.Navn - <em>Kompetencer:</em> @string.Join(", ", medarbejder.MineKompetencer)
-                                                </li>
-                                            }
-                                        }
-                                    </ul>
+                                <ul class="mt-2">
+                                    @foreach (var medarbejderId in task.AnsvarligForOpgave)
+                                    {
+                                    var medarbejder = employees.FirstOrDefault(e => e.Id == medarbejderId);
+                                    if (medarbejder != null)
+                                    {
+                                    <li>
+                                        @medarbejder.Navn - <em>Kompetencer:</em> @string.Join(", ", medarbejder.MineKompetencer)
+                                    </li>
+                                    }
+                                    }
+                                </ul>
                                 }
                                 else
                                 {
-                                    <span>Ingen medarbejdere tilknyttet</span>
+                                <span>Ingen medarbejdere tilknyttet</span>
                                 }
                             </div>
                             <div class="mt-2">
@@ -261,282 +261,282 @@
     </div>
 </div>
 @code {
-    private List<Core.Models.Event> events = new();
-    private List<Opgave> tasks = new();
-    private List<Bruger> employees = new();
-    private Core.Models.Event newEvent = new();
-    private Core.Models.Event? selectedEvent;
-    private Opgave newTask = new();
-    private Opgave selectedTask = new();
-    private string? selectedEventId;
-    private string errorMessage = string.Empty;
-    private bool isLoading = true;
-    private bool showAddEventModal = false;
-    private bool showEditEventModal = false;
-    private bool showAddTaskModal = false;
-    private bool showEditTaskModal = false;
+private List<Core.Models.Event> events = new();
+private List<Opgave> tasks = new();
+private List<Bruger> employees = new();
+private Core.Models.Event newEvent = new();
+private Core.Models.Event? selectedEvent;
+private Opgave newTask = new();
+private Opgave selectedTask = new();
+private string? selectedEventId;
+private string errorMessage = string.Empty;
+private bool isLoading = true;
+private bool showAddEventModal = false;
+private bool showEditEventModal = false;
+private bool showAddTaskModal = false;
+private bool showEditTaskModal = false;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadDataAsync();
-    }
+protected override async Task OnInitializedAsync()
+{
+await LoadDataAsync();
+}
 
-    private async Task LoadDataAsync()
-    {
-        isLoading = true;
-        errorMessage = string.Empty;
-        try
-        {
-            await LoadEvents();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke indlæse data.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
+private async Task LoadDataAsync()
+{
+isLoading = true;
+errorMessage = string.Empty;
+try
+{
+await LoadEvents();
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke indlæse data.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+finally
+{
+isLoading = false;
+}
+}
 
-    private async Task LoadEvents()
-    {
-        try
-        {
-            events = (await EventService.GetAllEventsAsync()).ToList();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke indlæse events.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-    }
+private async Task LoadEvents()
+{
+try
+{
+events = (await EventService.GetAllEventsAsync()).ToList();
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke indlæse events.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+}
 
-    private async Task LoadEmployees()
-    {
-        try
-        {
-            employees = (await BrugerService.GetUsersByRoleAsync(Rolle.Medarbejder)).ToList();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke indlæse medarbejdere.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-    }
+private async Task LoadEmployees()
+{
+try
+{
+employees = (await BrugerService.GetUsersByRoleAsync(Rolle.Medarbejder)).ToList();
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke indlæse medarbejdere.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+}
 
-    private async Task ShowTasks(string eventId)
-    {
-        selectedEventId = eventId;
-        try
-        {
-            await LoadEmployees();
-            var allTasks = await OpgaveService.GetAllOpgaverAsync();
-            tasks = allTasks.Where(t => t.EventId == eventId).ToList();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke indlæse opgaver.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-    }
+private async Task ShowTasks(string eventId)
+{
+selectedEventId = eventId;
+try
+{
+await LoadEmployees();
+var allTasks = await OpgaveService.GetAllOpgaverAsync();
+tasks = allTasks.Where(t => t.EventId == eventId).ToList();
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke indlæse opgaver.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+}
 
-    private void ShowAddEventModal()
-    {
-        newEvent = new Core.Models.Event { Dato = DateTime.Now };
-        showAddEventModal = true;
-    }
+private void ShowAddEventModal()
+{
+newEvent = new Core.Models.Event { Dato = DateTime.Now };
+showAddEventModal = true;
+}
 
-    private void CloseAddEventModal()
-    {
-        showAddEventModal = false;
-    }
+private void CloseAddEventModal()
+{
+showAddEventModal = false;
+}
 
-    private async Task AddEvent()
-    {
-        try
-        {Console.WriteLine(JsonSerializer.Serialize(newEvent));
+private async Task AddEvent()
+{
+try
+{Console.WriteLine(JsonSerializer.Serialize(newEvent));
 
-            await EventService.AddEventAsync(newEvent);
-            await LoadEvents();
-            CloseAddEventModal();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke tilføje event.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-    }
+await EventService.AddEventAsync(newEvent);
+await LoadEvents();
+CloseAddEventModal();
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke tilføje event.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+}
 
-    private void ShowEditEventModal(Core.Models.Event ev)
-    {
-        selectedEvent = ev;
-        showEditEventModal = true;
-    }
+private void ShowEditEventModal(Core.Models.Event ev)
+{
+selectedEvent = ev;
+showEditEventModal = true;
+}
 
-    private void CloseEditEventModal()
-    {
-        showEditEventModal = false;
-    }
+private void CloseEditEventModal()
+{
+showEditEventModal = false;
+}
 
-    private async Task UpdateEvent()
-    {
-        try
-        {
-            if (selectedEvent == null) return;
+private async Task UpdateEvent()
+{
+try
+{
+if (selectedEvent == null) return;
 
-            await EventService.UpdateEventAsync(selectedEvent.Id!, selectedEvent);
-            await LoadEvents();
-            CloseEditEventModal();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke opdatere event.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-    }
+await EventService.UpdateEventAsync(selectedEvent.Id!, selectedEvent);
+await LoadEvents();
+CloseEditEventModal();
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke opdatere event.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+}
 
-    private async Task DeleteEvent(string eventId)
-    {
-        try
-        {
-            await EventService.DeleteEventAsync(eventId);
-            await LoadEvents();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke slette event.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-    }
+private async Task DeleteEvent(string eventId)
+{
+try
+{
+await EventService.DeleteEventAsync(eventId);
+await LoadEvents();
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke slette event.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+}
 
-    private async Task ShowAddTaskModal()
-    {
-        await LoadEmployees();
-        newTask = new Opgave
-        {
-            EventId = selectedEventId,
-            StartTid = DateTime.Now.ToString("HH:mm"),
-            SlutTid = DateTime.Now.AddHours(1).ToString("HH:mm"),
-            Status = Status.IkkePåbegyndt,
-            AnsvarligForOpgave = new List<string>()
-        };
-        showAddTaskModal = true;
-    }
+private async Task ShowAddTaskModal()
+{
+await LoadEmployees();
+newTask = new Opgave
+{
+EventId = selectedEventId,
+StartTid = DateTime.Now.ToString("HH:mm"),
+SlutTid = DateTime.Now.AddHours(1).ToString("HH:mm"),
+Status = Status.IkkePåbegyndt,
+AnsvarligForOpgave = new List<string>()
+};
+showAddTaskModal = true;
+}
 
-    private void CloseAddTaskModal()
-    {
-        showAddTaskModal = false;
-    }
+private void CloseAddTaskModal()
+{
+showAddTaskModal = false;
+}
 
-    private async Task AddTask()
-    {
-        try
-        {
-            await OpgaveService.AddOpgaveAsync(newTask); 
-            await ShowTasks(selectedEventId!); 
-
-          
-            newTask = new Opgave
-            {
-                EventId = selectedEventId,
-                StartTid = DateTime.Now.ToString("HH:mm"),
-                SlutTid = DateTime.Now.AddHours(1).ToString("HH:mm"),
-                Status = Status.IkkePåbegyndt,
-                AnsvarligForOpgave = new List<string>()
-            };
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke tilføje opgave.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-    }
+private async Task AddTask()
+{
+try
+{
+await OpgaveService.AddOpgaveAsync(newTask);
+await ShowTasks(selectedEventId!);
 
 
-    private async Task ShowEditTaskModal(Opgave task)
-    {
-        await LoadEmployees();
-        selectedTask = task;
-        showEditTaskModal = true;
-    }
-
-    private void CloseEditTaskModal()
-    {
-        showEditTaskModal = false;
-    }
-
-    private async Task UpdateTask()
-    {
-        try
-        {
-            await OpgaveService.UpdateOpgaveAsync(selectedTask.Id!, selectedTask);
-            await ShowTasks(selectedEventId!);
-            CloseEditTaskModal();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke opdatere opgave.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-    }
+newTask = new Opgave
+{
+EventId = selectedEventId,
+StartTid = DateTime.Now.ToString("HH:mm"),
+SlutTid = DateTime.Now.AddHours(1).ToString("HH:mm"),
+Status = Status.IkkePåbegyndt,
+AnsvarligForOpgave = new List<string>()
+};
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke tilføje opgave.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+}
 
 
-    private async Task DeleteTask(string taskId)
-    {
-        try
-        {
-            await OpgaveService.DeleteOpgaveAsync(taskId);
-            tasks = tasks.Where(t => t.Id != taskId).ToList();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Kunne ikke slette opgave.";
-            Console.WriteLine($"Fejl: {ex.Message}");
-        }
-    }
+private async Task ShowEditTaskModal(Opgave task)
+{
+await LoadEmployees();
+selectedTask = task;
+showEditTaskModal = true;
+}
 
-    private void ToggleEmployeeSelection(ChangeEventArgs e, string employeeId, bool isEdit = false)
-    {
-        if ((bool)e.Value!)
-        {
-            if (isEdit)
-            {
-                if (!selectedTask.AnsvarligForOpgave.Contains(employeeId))
-                    selectedTask.AnsvarligForOpgave.Add(employeeId);
-            }
-            else
-            {
-                if (!newTask.AnsvarligForOpgave.Contains(employeeId))
-                    newTask.AnsvarligForOpgave.Add(employeeId);
-            }
-        }
-        else
-        {
-            if (isEdit)
-            {
-                selectedTask.AnsvarligForOpgave.Remove(employeeId);
-            }
-            else
-            {
-                newTask.AnsvarligForOpgave.Remove(employeeId);
-            }
-        }
-    }
-    private async Task ToggleTasks(string eventId)
-    {
-        if (selectedEventId == eventId)
-        {
-            
-            selectedEventId = null;
-            tasks.Clear(); 
-        }
-        else
-        {
-            
-            await ShowTasks(eventId);
-        }
-    }
+private void CloseEditTaskModal()
+{
+showEditTaskModal = false;
+}
+
+private async Task UpdateTask()
+{
+try
+{
+await OpgaveService.UpdateOpgaveAsync(selectedTask.Id!, selectedTask);
+await ShowTasks(selectedEventId!);
+CloseEditTaskModal();
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke opdatere opgave.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+}
+
+
+private async Task DeleteTask(string taskId)
+{
+try
+{
+await OpgaveService.DeleteOpgaveAsync(taskId);
+tasks = tasks.Where(t => t.Id != taskId).ToList();
+}
+catch (Exception ex)
+{
+errorMessage = "Kunne ikke slette opgave.";
+Console.WriteLine($"Fejl: {ex.Message}");
+}
+}
+
+private void ToggleEmployeeSelection(ChangeEventArgs e, string employeeId, bool isEdit = false)
+{
+if ((bool)e.Value!)
+{
+if (isEdit)
+{
+if (!selectedTask.AnsvarligForOpgave.Contains(employeeId))
+selectedTask.AnsvarligForOpgave.Add(employeeId);
+}
+else
+{
+if (!newTask.AnsvarligForOpgave.Contains(employeeId))
+newTask.AnsvarligForOpgave.Add(employeeId);
+}
+}
+else
+{
+if (isEdit)
+{
+selectedTask.AnsvarligForOpgave.Remove(employeeId);
+}
+else
+{
+newTask.AnsvarligForOpgave.Remove(employeeId);
+}
+}
+}
+private async Task ToggleTasks(string eventId)
+{
+if (selectedEventId == eventId)
+{
+
+selectedEventId = null;
+tasks.Clear();
+}
+else
+{
+
+await ShowTasks(eventId);
+}
+}
 
 }
