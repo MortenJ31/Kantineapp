@@ -38,6 +38,8 @@ builder.Services.AddSingleton<MongoDbService>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IOpgaveRepository, OpgaveRepository>();
 builder.Services.AddScoped<IBrugerRepository, BrugerRepository>();
+builder.Services.AddScoped<ILoginRepository, LoginRepository>();
+
 
 // CORS-politik
 builder.Services.AddCors(options =>

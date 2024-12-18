@@ -1,9 +1,7 @@
 using Core.Models;
-using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using ServerAPI.Services;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography.X509Certificates;
+
 
 
 namespace ServerAPI.Repositories
@@ -49,7 +47,7 @@ namespace ServerAPI.Repositories
 
         public async Task<Event?> UpdateEventAsync(string id, Event updatedEvent)
         {
-           //Kontroll�r, at id stemmer overens med updatedEvent.id
+           //Kontrollør, at id stemmer overens med updatedEvent.id
             if (id != updatedEvent.Id)
             {
                 throw new ArgumentException("EventId stemmer ikke overens");

@@ -1,0 +1,72 @@
+@page "/"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Login</h3>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p style="color: red;">@ErrorMessage</p> <!-- Display error message if login fails -->
+}
+
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="email">Email:</label>
+        <InputText id="email" @bind-Value="loginModel.Email" class="form-control" />
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <InputText id="password" @bind-Value="loginModel.Adgangskode" Type="password" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+</EditForm>
+
+<hr />
+
+<!-- Button to navigate to the register page -->
+<button @onclick="NavigateToRegister" class="btn btn-secondary">Register</button>
+
+@code {
+    // The login model containing email and password
+    private LoginRequest loginModel = new LoginRequest();
+
+    // Holds error messages to display for failed logins
+    private string? ErrorMessage;
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            // Send login request to the API
+            var response = await Http.PostAsJsonAsync("api/bruger/authenticate", loginModel);
+
+            // Deserialize the response
+            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+            if (loginResponse != null && loginResponse.IsSuccessful)
+            {
+                // Redirect to Event page on successful login
+                Navigation.NavigateTo("/event");
+            }
+            else
+            {
+                // Show an error message if login fails
+                ErrorMessage = loginResponse?.Message ?? "Invalid email or password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle unexpected errors
+            ErrorMessage = "An error occurred: " + ex.Message;
+        }
+    }
+
+    private void NavigateToRegister()
+    {
+        // Redirect to the registrer page
+        Navigation.NavigateTo("/registrer");
+    }
+}

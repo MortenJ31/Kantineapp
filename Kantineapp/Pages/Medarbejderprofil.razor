@@ -1,0 +1,62 @@
+@page "/employee"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+
+
+<h3>Employee Page</h3>
+
+@if (employee == null)
+{
+<p>Loading employee data...</p>
+}
+else
+{
+<div>
+    <h4>Velkommen, @employee.Navn</h4>
+    <p>Email: @employee.Email</p>
+    <p>Role: @employee.Rolle</p>
+
+    <h5>Tildelte opgaver:</h5>
+    @if (opgaver == null)
+    {
+    <p>Loading</p>
+    }
+    else if (opgaver.Count == 0)
+    {
+    <p>Ingen tildelte opgaver.</p>
+    }
+</div>
+}
+
+@code {
+private Bruger? employee; // Logged-in employee
+private List<Opgave>? opgaver; // Tasks assigned to the employee
+
+protected override async Task OnInitializedAsync()
+{
+// Get employee data from local storage
+var employeeJson = await JS.InvokeAsync<string>("localStorage.getItem", "employee");
+if (string.IsNullOrEmpty(employeeJson))
+{
+Navigation.NavigateTo("/"); // Redirect to log in if not logged in
+return;
+}
+
+
+if (employee != null)
+{
+// Fetch tasks for the logged-in employee
+opgaver = await Http.GetFromJsonAsync<List<Opgave>>($"api/opgave/employee/{employee.Id}");
+}
+}
+
+private class Bruger
+{
+public string Id { get; set; } = string.Empty;
+public string Navn { get; set; } = string.Empty;
+public string Email { get; set; } = string.Empty;
+public string Rolle { get; set; } = string.Empty;
+}
+}

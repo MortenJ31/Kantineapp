@@ -1,0 +1,39 @@
+@page "/registrer"
+
+<h3>Register</h3>
+
+<EditForm Model="@newUser">
+    <!-- Name -->
+    <div>
+        <label>Name:</label>
+        <InputText @bind="newUser.Navn" />
+    </div>
+
+    <!-- Email -->
+    <div>
+        <label>Email:</label>
+        <InputText @bind="newUser.Email" />
+    </div>
+
+    <!-- Password -->
+    <div>
+        <label>Password:</label>
+        <InputText @bind="newUser.Adgangskode" type="password" />
+    </div>
+</EditForm>
+
+@code {
+    private Bruger newUser = new Bruger
+    {
+        Navn = string.Empty,
+        Email = string.Empty,
+        Adgangskode = string.Empty
+    };
+
+    public class Bruger
+    {
+        public string Navn { get; set; }
+        public string Email { get; set; }
+        public string Adgangskode { get; set; }
+    }
+}

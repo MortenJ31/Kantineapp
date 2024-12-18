@@ -29,6 +29,7 @@ public class BrugerController : ControllerBase
     {
         return await _brugerRepository.GetUserByIdAsync(id);
     }
+    
 
     //Tilf�j ny bruger
     [HttpPost]

@@ -31,17 +31,25 @@ namespace ServerAPI.Repositories
             return await _brugerCollection.Find(b => b.Rolle == role).ToListAsync();
         }
         
+        public async Task<Bruger?> AuthenticateUserAsync(string email, string password)
+        {
+            // Query the database for a user with matching email and password
+            return await _brugerCollection
+                .Find(b => b.Email == email && b.Adgangskode == password)
+                .FirstOrDefaultAsync();
+        }
+
         
         public async Task<Bruger> AddUserAsync(Bruger newUser)
         {
             //
             if (string.IsNullOrEmpty(newUser.Id))
             {
-                newUser.Id = await GetNextUserIdAsync(); // Generér næste ID
+                newUser.Id = await GetNextUserIdAsync(); // Generï¿½r nï¿½ste ID
             }
 
 
-            //Tilføj en ny bruger til MongoDB
+            //Tilfï¿½j en ny bruger til MongoDB
             await _brugerCollection.InsertOneAsync(newUser);
             return newUser;
         }
