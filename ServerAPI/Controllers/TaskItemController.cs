@@ -28,7 +28,7 @@ namespace ServerAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<TaskItem> Create([FromBody] TaskItem newTaskItem)
+        public async Task<TaskItem> Create(TaskItem newTaskItem)
         {
             return await _taskItemRepository.AddTaskItemAsync(newTaskItem);
         }

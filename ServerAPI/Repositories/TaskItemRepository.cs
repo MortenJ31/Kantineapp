@@ -30,22 +30,17 @@ namespace ServerAPI.Repositories
 
         public async Task<TaskItem> AddTaskItemAsync(TaskItem newTaskItem)
         {
-            if (string.IsNullOrEmpty(newTaskItem.Id))
-            {
-                newTaskItem.Id = await GetNextTaskIdAsync();
-            }
+            newTaskItem.Id ??= await GetNextTaskIdAsync();
             await _taskItemCollection.InsertOneAsync(newTaskItem);
             return newTaskItem;
         }
 
         public async Task<TaskItem?> UpdateTaskItemAsync(string id, TaskItem updatedTaskItem)
         {
+            if (updatedTaskItem == null) throw new ArgumentNullException(nameof(updatedTaskItem));
+            
             var result = await _taskItemCollection.ReplaceOneAsync(o => o.Id == id, updatedTaskItem);
-
-            if (result.MatchedCount == 0)
-            {
-                return null;
-            }
+            if (result.MatchedCount == 0) return null;
 
             return updatedTaskItem;
         }
@@ -58,18 +53,18 @@ namespace ServerAPI.Repositories
 
         private async Task<string> GetNextTaskIdAsync()
         {
-            var highestIdTask = await _taskItemCollection
+            var maxId = await _taskItemCollection
                 .Find(_ => true)
-                .SortByDescending(t => t.Id)
-                .FirstOrDefaultAsync();
+                .Project(t => t.Id.Substring(8)) // Ekstraher suffikset
+                .ToListAsync();
 
-            if (highestIdTask == null || string.IsNullOrEmpty(highestIdTask.Id))
-            {
-                return "taskitem1";
-            }
+            var nextId = maxId
+                .Where(id => int.TryParse(id, out _)) // Kun gyldige tal
+                .Select(id => int.Parse(id))
+                .DefaultIfEmpty(0)
+                .Max() + 1;
 
-            var currentId = int.Parse(highestIdTask.Id.Substring(8));
-            return $"taskitem{currentId + 1}";
+            return $"taskitem{nextId}";
         }
     }
 }

@@ -25,11 +25,7 @@ namespace ServerAPI.Repositories
 
         public async Task<Event> AddEventAsync(Event newEvent)
         {
-            if (string.IsNullOrEmpty(newEvent.Id))
-            {
-                newEvent.Id = await GetNextEventIdAsync();
-            }
-
+            newEvent.Id ??= await GetNextEventIdAsync();
             await _eventCollection.InsertOneAsync(newEvent);
             return newEvent;
         }
@@ -54,18 +50,20 @@ namespace ServerAPI.Repositories
 
         private async Task<string> GetNextEventIdAsync()
         {
-            var highestId = await _eventCollection
+            var maxId = await _eventCollection
                 .Find(_ => true)
-                .Project(e => e.Id)
+                .Project(e => e.Id.Substring(5)) // Ekstraher suffikset (alt efter 'event')
                 .ToListAsync();
 
-            var maxId = highestId
-                .Where(id => id.StartsWith("event") && int.TryParse(id[5..], out _))
-                .Select(id => int.Parse(id[5..]))
+            var nextId = maxId
+                .Where(id => int.TryParse(id, out _)) // Kun gyldige tal
+                .Select(id => int.Parse(id))
                 .DefaultIfEmpty(0)
-                .Max();
+                .Max() + 1;
 
-            return $"event{maxId + 1}";
+            return $"event{nextId}";
         }
+
+
     }
 }

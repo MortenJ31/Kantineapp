@@ -30,29 +30,26 @@ namespace ServerAPI.Repositories
 
         public async Task<User> AddUserAsync(User newUser)
         {
-            if (string.IsNullOrEmpty(newUser.Id))
-            {
-                newUser.Id = await GetNextUserIdAsync();
-            }
-
+            newUser.Id ??= await GetNextUserIdAsync();
             await _userCollection.InsertOneAsync(newUser);
             return newUser;
         }
 
         private async Task<string> GetNextUserIdAsync()
         {
-            var highestIdUser = await _userCollection
+            var highestUser = await _userCollection
                 .Find(_ => true)
                 .SortByDescending(u => u.Id)
                 .FirstOrDefaultAsync();
 
-            if (highestIdUser == null || string.IsNullOrEmpty(highestIdUser.Id))
+            if (highestUser == null)
             {
                 return "user1";
             }
 
-            var currentId = int.Parse(highestIdUser.Id.Substring(4));
+            var currentId = int.Parse(highestUser.Id[4..]); // Skip "user"
             return $"user{currentId + 1}";
         }
+
     }
 }

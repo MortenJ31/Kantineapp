@@ -54,19 +54,7 @@
 
 @code {
 private LoginRequest loginRequest = new();
-private string ErrorMessage = string.Empty;
-
-protected override async Task OnInitializedAsync()
-{
-// Tjek om brugeren allerede er logget ind
-var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", new object[] { "userRole" });
-
-// Hvis brugeren er logget ind, naviger til /overview
-if (!string.IsNullOrEmpty(userRole))
-{
-NavigationManager.NavigateTo("/overview");
-}
-}
+private string ErrorMessage;
 
 private async Task HandleLogin()
 {
@@ -78,10 +66,10 @@ var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
 if (result != null && result.IsSuccessful)
 {
 // Gem brugerens rolle i sessionStorage
-await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", new object[] { "userRole", result.Role });
+await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "userRole", result.Role);
 
-// Naviger til oversigten
-NavigationManager.NavigateTo("/overview");
+// Naviger til oversigten for at opdatere layout
+NavigationManager.NavigateTo("/overview", true); // Force reload
 }
 else
 {
