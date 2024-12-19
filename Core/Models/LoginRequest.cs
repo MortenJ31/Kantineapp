@@ -1,9 +1,15 @@
-using MongoDB.Bson.Serialization.Attributes; 
+using MongoDB.Bson.Serialization.Attributes;
+
+
+/// Repræsenterer en login-anmodning med brugerens email og adgangskode.
+
 public class LoginRequest
 {
     [BsonElement("Email")]
-    public string Email { get; set; } 
+    // Brugerens email, som bruges til login.
+    public string Email { get; set; }
 
     [BsonElement("Password")]
-    public string Password { get; set; } 
+    // Brugerens adgangskode til login.
+    public string Password { get; set; }
 }

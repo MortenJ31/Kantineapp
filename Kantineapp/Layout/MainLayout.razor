@@ -6,9 +6,11 @@
 {
     <div class="app-layout">
         <aside class="navbar">
+            <!-- Viser navbaren med menu, hvis brugeren er logget ind -->
             <NavMenu OnLogout="HandleLogout" />
         </aside>
         <main class="content">
+            <!-- Hovedindholdet vises her -->
             @Body
         </main>
     </div>
@@ -16,44 +18,52 @@
 else
 {
     <main class="content">
+        <!-- Hvis brugeren ikke er logget ind, vises kun indholdet -->
         @Body
     </main>
 }
 
 <style>
+    /* Baseline styling */
     html, body {
         height: 100%;
         margin: 0;
         padding: 0;
     }
 
+    /* Layout for logged-in brugere */
     .app-layout {
-        display: flex;
-        height: 100vh;
+        display: flex; /* Side-by-side layout */
+        height: 100vh; /* Fylder hele højden */
         overflow: hidden;
     }
 
     .content {
-        flex: 1;
-        padding: 1rem;
+        flex: 1; /* Fyld resten af skærmen */
+        padding: 1rem; /* Indvendig afstand */
         background-color: #ffffff;
-        overflow-y: auto;
+        overflow-y: auto; /* Scroll, hvis indholdet er for stort */
     }
 </style>
 
 @code {
-    private bool isUserLoggedIn;
+    private bool isUserLoggedIn; // Bruges til at holde styr på login-status
 
     protected override async Task OnInitializedAsync()
     {
+        // Tjekker login-status, når layoutet indlæses
         await CheckLoginStatus();
     }
 
     private async Task CheckLoginStatus()
     {
+        // Henter brugerens rolle fra sessionStorage
         var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "userRole");
+
+        // Hvis der er en rolle, er brugeren logget ind
         isUserLoggedIn = !string.IsNullOrEmpty(userRole);
 
+        // Hvis brugeren ikke er logget ind, sendes de til login-siden
         if (!isUserLoggedIn)
         {
             NavigationManager.NavigateTo("/");
@@ -62,16 +72,16 @@ else
 
     private async Task HandleLogout()
     {
-        // Fjern userRole fra sessionStorage
+        // Fjerner brugerens rolle fra sessionStorage
         await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "userRole");
 
-        // Sæt login-status til false og opdater layoutet
+        // Opdaterer login-status og skjuler navbaren
         isUserLoggedIn = false;
 
-        // Naviger til login-siden
+        // Sender brugeren tilbage til login-siden
         NavigationManager.NavigateTo("/");
 
-        // Opdater UI
+        // Opdaterer layoutet
         StateHasChanged();
     }
 }

@@ -3,263 +3,287 @@
 @inject IEventService EventService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+
 <div class="container-layout">
-    <!-- Event List -->
+    <!-- Overskrift -->
     <h3 class="mb-4">Oversigten for Events</h3>
 
+    <!-- Fejlmeddelelse -->
     @if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div class="alert alert-danger">@errorMessage</div>
+    <div class="alert alert-danger">@errorMessage</div> <!-- Viser fejl, hvis noget går galt -->
     }
 
+    <!-- Knappen til at oprette et nyt event -->
     <button class="btn btn-success mb-3" @onclick="ShowAddEventModal">Opret Event</button>
 
+    <!-- Indlæsningsindikator -->
     @if (isLoading)
     {
-        <p>Indlæser events...</p>
+    <p>Indlæser events...</p> <!-- Vises, når data indlæses -->
     }
-    else if (events == null || !events.Any())
+    
+    else if (events == null || !events.Any()) // Besked, hvis der ikke er nogen events
     {
-        <p>Ingen events fundet.</p>
+    <p>Ingen events fundet.</p>
     }
-    else
+   
+    else // Liste over events
     {
-        <ul class="list-group">
-            @foreach (var ev in events)
-            {
-                <li class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>@ev.Name</strong> - @ev.Date.ToShortDateString() - Lokation: @ev.Location
-                            <br />
-                            Kunde: @ev.Customer - Madvalg: @ev.FoodChoice - Særlige ønsker: @ev.SpecialRequests - Deltagerantal: @ev.Participants
-                        </div>
-                        <div>
-                            <button class="btn btn-warning btn-sm me-2" @onclick="() => ShowEditEventModal(ev)">Rediger</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteEvent(ev.Id)">Slet</button>
-                        </div>
-                    </div>
-                </li>
-            }
-        </ul>
+    <ul class="list-group">
+        @foreach (var ev in events)
+        {
+        <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <!-- Viser eventdetaljer -->
+                    <strong>@ev.Name</strong> - @ev.Date.ToShortDateString() - Lokation: @ev.Location
+                    <br />
+                    Kunde: @ev.Customer - Madvalg: @ev.FoodChoice - Særlige ønsker: @ev.SpecialRequests - Deltagerantal: @ev.Participants
+                </div>
+                <div>
+                    <!-- Knappen til at redigere eller slette et event -->
+                    <button class="btn btn-warning btn-sm me-2" @onclick="() => ShowEditEventModal(ev)">Rediger</button>
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteEvent(ev.Id)">Slet</button>
+                </div>
+            </div>
+        </li>
+        }
+    </ul>
     }
 
-    <!-- Add Event Modal -->
+    <!-- Modal til oprettelse af nye events -->
     @if (showAddEventModal)
     {
-        <div class="modal show d-block">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Opret Event</h5>
-                        <button type="button" class="btn-close" @onclick="CloseAddEventModal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <EditForm Model="@newEvent" OnValidSubmit="@AddEvent">
-                            <div class="mb-3">
-                                <label for="eventName">Event Navn:</label>
-                                <InputText id="eventName" @bind-Value="newEvent.Name" class="form-control" placeholder="Indtast eventnavn" />
-                                <small class="form-text text-muted">Navnet på eventet, f.eks. "Bryllup", "Firmafest".</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="eventDate">Event Dato:</label>
-                                <InputDate id="eventDate" @bind-Value="newEvent.Date" class="form-control" />
-                                <small class="form-text text-muted">Vælg datoen for eventet.</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="eventLocation">Lokation:</label>
-                                <InputText id="eventLocation" @bind-Value="newEvent.Location" class="form-control" placeholder="Indtast lokation" />
-                                <small class="form-text text-muted">Hvor finder eventet sted? F.eks. "København", "Aarhus".</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="participantCount">Deltagerantal:</label>
-                                <InputNumber id="participantCount" @bind-Value="newEvent.Participants" class="form-control" placeholder="Indtast antal deltagere" />
-                                <small class="form-text text-muted">Hvor mange personer deltager i eventet?</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="mealChoice">Madvalg:</label>
-                                <InputText id="mealChoice" @bind-Value="newEvent.FoodChoice" class="form-control" placeholder="F.eks. Buffet, 3-retters menu" />
-                                <small class="form-text text-muted">Vælg madmuligheder, f.eks. "Vegetar", "Kød", "Vegansk".</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="specialRequests">Særlige ønsker:</label>
-                                <InputText id="specialRequests" @bind-Value="newEvent.SpecialRequests" class="form-control" placeholder="Skriv eventuelle særlige ønsker" />
-                                <small class="form-text text-muted">Angiv særlige ønsker, f.eks. "Glutenfri", "Lydudstyr".</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="eventCustomer">Kunde:</label>
-                                <InputText id="eventCustomer" @bind-Value="newEvent.Customer" class="form-control" placeholder="Indtast kundens navn" />
-                                <small class="form-text text-muted">Hvem er kunden? F.eks. "Firma X", "Bryllup X".</small>
-                            </div>
-                            <button type="submit" class="btn btn-success">Tilføj Event</button>
-                        </EditForm>
-                    </div>
+    <div class="modal show d-block">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Opret Event</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddEventModal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formular til at oprette et nyt event -->
+                    <EditForm Model="@newEvent" OnValidSubmit="@AddEvent">
+                        <div class="mb-3">
+                            <label for="eventName">Event Navn:</label>
+                            <InputText id="eventName" @bind-Value="newEvent.Name" class="form-control" placeholder="Indtast eventnavn" />
+                            <small class="form-text text-muted">Navnet på eventet.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="eventDate">Event Dato:</label>
+                            <InputDate id="eventDate" @bind-Value="newEvent.Date" class="form-control" />
+                            <small class="form-text text-muted">Vælg datoen for eventet.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="eventLocation">Lokation:</label>
+                            <InputText id="eventLocation" @bind-Value="newEvent.Location" class="form-control" placeholder="Indtast lokation" />
+                            <small class="form-text text-muted">Hvor finder eventet sted?</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="participantCount">Deltagerantal:</label>
+                            <InputNumber id="participantCount" @bind-Value="newEvent.Participants" class="form-control" placeholder="Indtast antal deltagere" />
+                            <small class="form-text text-muted">Hvor mange personer deltager i eventet?</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mealChoice">Madvalg:</label>
+                            <InputText id="mealChoice" @bind-Value="newEvent.FoodChoice" class="form-control" placeholder="F.eks. Buffet, 3-retters menu" />
+                            <small class="form-text text-muted">Angiv madønske.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="specialRequests">Særlige ønsker:</label>
+                            <InputText id="specialRequests" @bind-Value="newEvent.SpecialRequests" class="form-control" placeholder="Skriv eventuelle særlige ønsker" />
+                            <small class="form-text text-muted">Eventuelle ønsker, fx glutenfri.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="eventCustomer">Kunde:</label>
+                            <InputText id="eventCustomer" @bind-Value="newEvent.Customer" class="form-control" placeholder="Indtast kundens navn" />
+                            <small class="form-text text-muted">Hvem er kunden?</small>
+                        </div>
+                        <!-- Knappen til at indsende oprettelsen -->
+                        <button type="submit" class="btn btn-success">Tilføj Event</button>
+                    </EditForm>
                 </div>
             </div>
         </div>
+    </div>
     }
 
-    <!-- Edit Event Modal -->
+    <!-- Modal til redigering af events -->
     @if (showEditEventModal)
     {
-        <div class="modal show d-block">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Rediger Event</h5>
-                        <button type="button" class="btn-close" @onclick="CloseEditEventModal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <EditForm Model="@selectedEvent" OnValidSubmit="@UpdateEvent">
-                            <div class="mb-3">
-                                <label for="editEventName">Event Navn:</label>
-                                <InputText id="editEventName" @bind-Value="selectedEvent.Name" class="form-control" placeholder="Indtast eventnavn" />
-                                <small class="form-text text-muted">Navnet på eventet, f.eks. "Bryllup", "Firmafest".</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editEventDate">Event Dato:</label>
-                                <InputDate id="editEventDate" @bind-Value="selectedEvent.Date" class="form-control" />
-                                <small class="form-text text-muted">Vælg datoen for eventet.</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editEventLocation">Lokation:</label>
-                                <InputText id="editEventLocation" @bind-Value="selectedEvent.Location" class="form-control" placeholder="Indtast lokation" />
-                                <small class="form-text text-muted">Hvor finder eventet sted? F.eks. "København", "Aarhus".</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editParticipantCount">Deltagerantal:</label>
-                                <InputNumber id="editParticipantCount" @bind-Value="selectedEvent.Participants" class="form-control" placeholder="Indtast antal deltagere" />
-                                <small class="form-text text-muted">Hvor mange personer deltager i eventet?</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editMealChoice">Madvalg:</label>
-                                <InputText id="editMealChoice" @bind-Value="selectedEvent.FoodChoice" class="form-control" placeholder="F.eks. Buffet, 3-retters menu" />
-                                <small class="form-text text-muted">Vælg madmuligheder, f.eks. "Vegetar", "Kød", "Vegansk".</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editSpecialRequests">Særlige ønsker:</label>
-                                <InputText id="editSpecialRequests" @bind-Value="selectedEvent.SpecialRequests" class="form-control" placeholder="Skriv eventuelle særlige ønsker" />
-                                <small class="form-text text-muted">Angiv særlige ønsker, f.eks. "Glutenfri", "Lydudstyr".</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editEventCustomer">Kunde:</label>
-                                <InputText id="editEventCustomer" @bind-Value="selectedEvent.Customer" class="form-control" placeholder="Indtast kundens navn" />
-                                <small class="form-text text-muted">Hvem er kunden? F.eks. "Firma X", "Bryllup X".</small>
-                            </div>
-                            <button type="submit" class="btn btn-warning">Opdater Event</button>
-                        </EditForm>
-                    </div>
+    <div class="modal show d-block">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rediger Event</h5>
+                    <button type="button" class="btn-close" @onclick="CloseEditEventModal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formular til at redigere et eksisterende event -->
+                    <EditForm Model="@selectedEvent" OnValidSubmit="@UpdateEvent">
+                        <div class="mb-3">
+                            <label for="editEventName">Event Navn:</label>
+                            <InputText id="editEventName" @bind-Value="selectedEvent.Name" class="form-control" placeholder="Indtast eventnavn" />
+                            <small class="form-text text-muted">Navnet på eventet.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEventDate">Event Dato:</label>
+                            <InputDate id="editEventDate" @bind-Value="selectedEvent.Date" class="form-control" />
+                            <small class="form-text text-muted">Vælg datoen for eventet.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEventLocation">Lokation:</label>
+                            <InputText id="editEventLocation" @bind-Value="selectedEvent.Location" class="form-control" placeholder="Indtast lokation" />
+                            <small class="form-text text-muted">Hvor finder eventet sted?</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editParticipantCount">Deltagerantal:</label>
+                            <InputNumber id="editParticipantCount" @bind-Value="selectedEvent.Participants" class="form-control" placeholder="Indtast antal deltagere" />
+                            <small class="form-text text-muted">Hvor mange personer deltager i eventet?</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editMealChoice">Madvalg:</label>
+                            <InputText id="editMealChoice" @bind-Value="selectedEvent.FoodChoice" class="form-control" placeholder="F.eks. Buffet, 3-retters menu" />
+                            <small class="form-text text-muted">Angiv madmuligheder, f.eks. vegetar eller vegansk.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editSpecialRequests">Særlige ønsker:</label>
+                            <InputText id="editSpecialRequests" @bind-Value="selectedEvent.SpecialRequests" class="form-control" placeholder="Skriv eventuelle særlige ønsker" />
+                            <small class="form-text text-muted">Eventuelle ønsker, f.eks. glutenfri eller lydudstyr.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEventCustomer">Kunde:</label>
+                            <InputText id="editEventCustomer" @bind-Value="selectedEvent.Customer" class="form-control" placeholder="Indtast kundens navn" />
+                            <small class="form-text text-muted">Hvem er kunden?</small>
+                        </div>
+                        <!-- Knappen til at indsende opdateringen -->
+                        <button type="submit" class="btn btn-warning">Opdater Event</button>
+                    </EditForm>
                 </div>
             </div>
         </div>
+    </div>
     }
 </div>
 
 @code {
-    private List<Core.Models.Event> events = new();
-    private Core.Models.Event newEvent = new();
-    private Core.Models.Event? selectedEvent;
+    // Liste over events, en ny event til oprettelse og en valgt event til redigering
+    private List<Event> events = new();
+    private Event newEvent = new();
+    private Event? selectedEvent;
+
+    // Variabler til fejlmeddelelser og UI-state
     private string errorMessage = string.Empty;
     private bool isLoading = true;
     private bool showAddEventModal = false;
     private bool showEditEventModal = false;
 
+    // Lifecycle-metode, der kører, når komponenten initialiseres
     protected override async Task OnInitializedAsync()
     {
-        // Hent brugerens rolle fra sessionStorage
+        // Henter brugerens rolle fra sessionStorage
         var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "userRole");
 
-        // Tjek, om rollen er "Administrator"
+        // Tjekker, om brugeren har administrator-rolle
         if (string.IsNullOrEmpty(userRole) || userRole != "Administrator")
         {
-            // Naviger til "ingenadgang", hvis brugeren ikke har rollen
+            // Navigerer til "noaccess", hvis brugeren ikke har adgang
             NavigationManager.NavigateTo("/noaccess", true);
             return;
         }
 
-        // Indlæs data, hvis adgang er givet
+        // Indlæser events, hvis brugeren har adgang
         await LoadEvents();
     }
 
-
+    // Henter listen over events fra EventService
     private async Task LoadEvents()
     {
-        isLoading = true;
+        isLoading = true; // Viser indlæsningsindikator
         try
         {
-            events = (await EventService.GetAllEventsAsync()).ToList();
+            events = (await EventService.GetAllEventsAsync()).ToList(); // Henter alle events
         }
         catch (Exception ex)
         {
-            errorMessage = "Kunne ikke indlæse events.";
+            errorMessage = "Kunne ikke indlæse events."; // Viser fejlmeddelelse, hvis datahentning fejler
             Console.WriteLine($"Fejl: {ex.Message}");
         }
         finally
         {
-            isLoading = false;
+            isLoading = false; // Skjuler indlæsningsindikator
         }
     }
 
+    // Åbner modal til oprettelse af et nyt event
     private void ShowAddEventModal()
     {
-        newEvent = new Core.Models.Event { Date = DateTime.Now };
+        newEvent = new Core.Models.Event { Date = DateTime.Now }; // Initialiserer nyt event med dags dato
         showAddEventModal = true;
     }
 
+    // Lukker modal til oprettelse af event
     private void CloseAddEventModal() => showAddEventModal = false;
 
+    // Tilføjer et nyt event via EventService
     private async Task AddEvent()
     {
         try
         {
-            await EventService.AddEventAsync(newEvent);
-            await LoadEvents();
-            CloseAddEventModal();
+            await EventService.AddEventAsync(newEvent); // Tilføjer event til databasen
+            await LoadEvents(); // Genindlæser listen over events
+            CloseAddEventModal(); // Lukker modal
         }
         catch (Exception ex)
         {
-            errorMessage = "Kunne ikke tilføje event.";
+            errorMessage = "Kunne ikke tilføje event."; // Fejlmeddelelse ved mislykket oprettelse
             Console.WriteLine($"Fejl: {ex.Message}");
         }
     }
 
+    // Åbner modal til redigering af et eksisterende event
     private void ShowEditEventModal(Core.Models.Event ev)
     {
-        selectedEvent = ev;
+        selectedEvent = ev; // Sætter det valgte event til redigering
         showEditEventModal = true;
     }
 
+    // Lukker modal til redigering af event
     private void CloseEditEventModal() => showEditEventModal = false;
 
+    // Opdaterer det valgte event via EventService
     private async Task UpdateEvent()
     {
         try
         {
-            if (selectedEvent != null)
+            if (selectedEvent != null) // Sikrer, at et event er valgt
             {
-                await EventService.UpdateEventAsync(selectedEvent.Id!, selectedEvent);
-                await LoadEvents();
-                CloseEditEventModal();
+                await EventService.UpdateEventAsync(selectedEvent.Id!, selectedEvent); // Opdaterer event
+                await LoadEvents(); // Genindlæser listen over events
+                CloseEditEventModal(); // Lukker modal
             }
         }
         catch (Exception ex)
         {
-            errorMessage = "Kunne ikke opdatere event.";
+            errorMessage = "Kunne ikke opdatere event."; // Fejlmeddelelse ved mislykket opdatering
             Console.WriteLine($"Fejl: {ex.Message}");
         }
     }
 
+    // Sletter et event baseret på dets ID
     private async Task DeleteEvent(string eventId)
     {
         try
         {
-            await EventService.DeleteEventAsync(eventId);
-            await LoadEvents();
+            await EventService.DeleteEventAsync(eventId); // Sletter event fra databasen
+            await LoadEvents(); // Genindlæser listen over events
         }
         catch (Exception ex)
         {
-            errorMessage = "Kunne ikke slette event.";
+            errorMessage = "Kunne ikke slette event."; // Fejlmeddelelse ved mislykket sletning
             Console.WriteLine($"Fejl: {ex.Message}");
         }
     }
 }
+

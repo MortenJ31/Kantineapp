@@ -3,80 +3,88 @@
 
 <nav class="navbar">
     <div class="navbar-logo">
+        <!-- Logo og systemnavn -->
         <img src="images/kantine-logo.png" alt="Kantine Logo">
         <span>KantineSystem</span>
     </div>
     <div class="nav-links">
+        <!-- Navigation til forskellige sektioner -->
         <a href="/overview">Hjem</a>
         <a href="/taskitemcrud">Opgave Håndtering</a>
         <a href="/eventcrud">Event Håndtering</a>
+        <!-- Log ud-knap -->
         <button @onclick="Logout" class="btn btn-danger">Log ud</button>
     </div>
 </nav>
 
 <style>
+    /* Styling for navbar */
     .navbar {
-        width: 250px;
-        height: 100vh; /* Gør navbaren fuld højde */
-        background-color: #ffffff;
-        border-right: 2px solid #ddd;
-        padding: 1rem 0; /* Sørger for padding omkring indholdet */
+        width: 250px; 
+        height: 100vh; 
+        background-color: #ffffff; 
+        border-right: 2px solid #ddd; 
+        padding: 1rem 0; 
         display: flex;
-        flex-direction: column; /* Stak elementer lodret */
+        flex-direction: column; 
         align-items: center;
-        justify-content: flex-start; /* Hold elementer i toppen */
+        justify-content: flex-start; 
     }
 
+    /* Styling for logo sektion */
     .navbar-logo {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem; /* Gør plads mellem logo og tekst */
-        margin-bottom: 1rem; /* Adskil logo fra links */
+        display: flex; 
+        align-items: center; 
+        gap: 0.5rem; 
+        margin-bottom: 1rem; 
     }
 
     .navbar-logo img {
-        width: 40px;
-        height: 40px; /* Ensartet størrelse til logoet */
+        width: 40px; 
+        height: 40px; 
     }
 
+    
     .nav-links {
-        display: flex;
-        flex-direction: column; /* Links stables lodret */
-        align-items: center;
-        gap: 1rem; /* Gør plads mellem links */
-        width: 100%;
-        margin-top: 1rem; /* Lidt luft under logoet */
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        gap: 1rem; 
+        width: 100%; 
+        margin-top: 1rem; 
     }
 
     .nav-links a {
-        text-decoration: none; /* Fjern understregning */
-        color: #333;
-        font-weight: bold;
-        font-size: 1.1rem;
-        transition: color 0.3s ease;
+        text-decoration: none; 
+        color: #333; 
+        font-weight: bold; 
+        font-size: 1.1rem; 
+        transition: color 0.3s ease; 
     }
 
     .nav-links a:hover {
-        color: #157347; /* Grøn farve ved hover */
+        color: #157347; 
     }
-
 </style>
 
 @code {
-    [Parameter] public EventCallback OnLogout { get; set; }
+    // Bruges til at fortælle den overordnede komponent, at brugeren er logget ud.
+// F.eks. skjules navbaren, og brugeren navigeres til login-siden.
+[Parameter] public EventCallback OnLogout { get; set; }
 
-    private async Task Logout()
-    {
-        // Fjern userRole fra sessionStorage
-        await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "userRole");
+// Håndterer logout-logikken
+private async Task Logout()
+{
+// Fjerner userRole fra sessionStorage
+await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "userRole");
 
-        // Informér layoutet om logout
-        if (OnLogout.HasDelegate)
-        {
-            await OnLogout.InvokeAsync();
-        }
+// Informerer layoutet om, at brugeren er logget ud
+if (OnLogout.HasDelegate)
+{
+await OnLogout.InvokeAsync();
+}
 
-        // Naviger til login-siden
-        NavigationManager.NavigateTo("/");
-    }
+// Navigerer til login-siden
+NavigationManager.NavigateTo("/");
+}
 }

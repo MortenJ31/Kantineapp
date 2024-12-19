@@ -7,24 +7,25 @@ namespace ServerAPI.Services
     {
         private readonly IMongoDatabase _database;
 
+        // Constructor – vi tager en database ind(mongoDB) her og gemmer den i en privat variabel
         public MongoDbService(IMongoDatabase database)
         {
             _database = database;
         }
 
-        //Hent kollektion for User
+        // Returnerer "User"-kollektionen fra databasen
         public IMongoCollection<User> GetUserCollection()
         {
             return _database.GetCollection<User>("User");
         }
 
-        //Hent kollektion for Event
+        // Returnerer "Event"-kollektionen fra databasen
         public IMongoCollection<Event> GetEventCollection()
         {
             return _database.GetCollection<Event>("Event");
         }
 
-        //Hent kollektion for TaskItem
+        // Returnerer "TaskItem"-kollektionen fra databasen
         public IMongoCollection<TaskItem> GetTaskItemCollection()
         {
             return _database.GetCollection<TaskItem>("TaskItem");

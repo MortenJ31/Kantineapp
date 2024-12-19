@@ -8,39 +8,43 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson;
 using System.Text.Json.Serialization;
 using Core.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Registrer enum-serializers for Status og Rolle
+// Lige her sørger vi for, at enums gemmes som strenge i databasen
 BsonSerializer.RegisterSerializer(typeof(Status), new EnumSerializer<Status>(BsonType.String));
 BsonSerializer.RegisterSerializer(typeof(Role), new EnumSerializer<Role>(BsonType.String));
 
-// Tilføj MongoDB-indstillinger fra appsettings.json
+// Hent MongoDB-indstillinger fra appsettings.json
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
-// Registrer MongoDB-komponenter som services
+// MongoDB bliver sat op som en service her
 builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
 {
+    // Henter forbindelsesstrengen fra settings og laver en klient
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
     return new MongoClient(settings.ConnectionString);
 });
 
 builder.Services.AddSingleton<IMongoDatabase>(sp =>
 {
+    // Her laver vi en forbindelse til selve databasen
     var client = sp.GetRequiredService<IMongoClient>();
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
     return client.GetDatabase(settings.DatabaseName);
 });
 
+// Smider vores MongoDB-service i puljen
 builder.Services.AddSingleton<MongoDbService>();
 
-// Registrer repositories
+// Her registrerer vi repositories – hver tager sig af deres del af data
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<ITaskItemRepository, TaskItemRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ILoginRepository, LoginRepository>();
 
-// CORS-politik
+// CORS – det her er så vi kan snakke med API’et fra alle steder
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins", policy =>
@@ -51,30 +55,31 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Konfigurer controllers med JSON-indstillinger
+// Vi sætter controllers op og tilføjer JSON-konvertering, så enums ser godt ud
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-// Swagger-konfiguration
+// Her smider vi lige Swagger på, så vi får en flot dokumentation til API'et
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Swagger UI og middleware
+// Hvis vi er i udvikling, viser vi Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// Her kommer den CORS-politik, vi satte før
 app.UseCors("AllowAllOrigins");
-app.UseHttpsRedirection();
-app.UseAuthorization();
+app.UseHttpsRedirection(); 
+app.UseAuthorization(); 
 
 app.MapControllers();
 
-app.Run();
+app.Run(); // Og så starter vi hele showet!

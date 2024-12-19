@@ -7,11 +7,13 @@
     <div class="login-card">
         <h2>Log ind</h2>
 
+        <!-- Viser fejlmeddelelse, hvis login fejler -->
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
-        <div class="alert alert-danger">@ErrorMessage</div>
+            <div class="alert alert-danger">@ErrorMessage</div>
         }
 
+        <!-- Formular til login -->
         <EditForm Model="@loginRequest" OnValidSubmit="HandleLogin">
             <div class="form-group">
                 <label for="email">Email</label>
@@ -29,6 +31,7 @@
 </div>
 
 <style>
+    /* Centrerer login-containeren på siden */
     .login-container {
         display: flex;
         justify-content: center;
@@ -36,6 +39,7 @@
         height: 100vh;
         background-color: #f9f9f9;
     }
+    /* Stil til login-kortet */
     .login-card {
         background: white;
         border-radius: 8px;
@@ -44,6 +48,7 @@
         max-width: 400px;
         width: 100%;
     }
+    /* Stil til inputfelter og knap */
     .form-group {
         margin-bottom: 1rem;
     }
@@ -53,32 +58,39 @@
 </style>
 
 @code {
-private LoginRequest loginRequest = new();
-private string ErrorMessage;
+    // Model til at holde login-data
+    private LoginRequest loginRequest = new();
 
-private async Task HandleLogin()
-{
-try
-{
-var response = await Http.PostAsJsonAsync("api/login", loginRequest);
-var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+    // Fejlbesked, der vises, hvis login mislykkes
+    private string ErrorMessage;
 
-if (result != null && result.IsSuccessful)
-{
-// Gem brugerens rolle i sessionStorage
-await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "userRole", result.Role);
+    // Håndterer login-processen
+    private async Task HandleLogin()
+    {
+        try
+        {
+            // Sender loginoplysninger til API'et
+            var response = await Http.PostAsJsonAsync("api/login", loginRequest);
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
-// Naviger til oversigten for at opdatere layout
-NavigationManager.NavigateTo("/overview", true); // Force reload
-}
-else
-{
-ErrorMessage = result?.Message ?? "Login mislykkedes.";
-}
-}
-catch (Exception ex)
-{
-ErrorMessage = $"Der opstod en fejl: {ex.Message}";
-}
-}
+            if (result != null && result.IsSuccessful)
+            {
+                // Gemmer brugerens rolle i sessionStorage
+                await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "userRole", result.Role);
+
+                // Navigerer til oversigten og genindlæser siden
+                NavigationManager.NavigateTo("/overview", true);
+            }
+            else
+            {
+                // Viser fejlmeddelelse, hvis login fejler
+                ErrorMessage = result?.Message ?? "Login mislykkedes.";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fanger fejl under login og viser en fejlmeddelelse
+            ErrorMessage = $"Der opstod en fejl: {ex.Message}";
+        }
+    }
 }

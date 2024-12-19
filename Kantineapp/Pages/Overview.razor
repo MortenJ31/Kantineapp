@@ -5,195 +5,217 @@
 @inject IUserService BrugerService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+
 <div class="container-layout">
     <!-- Event List -->
     <div class="event-list">
         <h3 class="mb-4">Oversigt</h3>
+
         <!-- Fejlbesked -->
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-        <div class="alert alert-danger">@errorMessage</div>
+            <div class="alert alert-danger">@errorMessage</div> <!-- Viser fejlmeddelelser -->
         }
 
+        <!-- Indlæsningsindikator -->
         @if (isLoading)
         {
-        <p>Indlæser events...</p>
+            <p>Indlæser events...</p>
         }
-        else if (events == null || !events.Any())
+       
+        else if (events == null || !events.Any()) // Besked, hvis der ikke er nogen events 
         {
-        <p>Ingen events fundet.</p>
+            <p>Ingen events fundet.</p>
         }
-        else
+        
+        else //Liste over events
         {
-        <ul class="list-group">
-            @foreach (Core.Models.Event ev in events)
-            {
-            <li class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>@ev.Name</strong> - @ev.Date.ToShortDateString() - Lokation: @ev.Location
-                        <br />
-                        Kunde: @ev.Customer - Madvalg: @ev.FoodChoice - Særlige ønsker: @ev.SpecialRequests - Deltagerantal: @ev.Participants
-                    </div>
-                    <div>
-                        <button class="btn btn-primary btn-sm me-2" @onclick="() => ToggleTasks(ev.Id)">
-                            @(selectedEventId == ev.Id ? "Luk Opgaver" : "Vis Opgaver")
-                        </button>
-                    </div>
-                </div>
-
-                @if (selectedEventId == ev.Id)
+            <ul class="list-group">
+                @foreach (Event ev in events)
                 {
-                <div class="mt-3">
-                    <h5>Opgaver</h5>
-                    @if (!tasks.Any())
-                    {
-                    <p>Ingen opgaver fundet.</p>
-                    }
-                    else
-                    {
-                    <ul class="list-group">
-                        @foreach (var task in tasks)
-                        {
-                        <li class="list-group-item">
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>Opgave:</strong> @task.Description
+                                <!-- Viser eventdetaljer -->
+                                <strong>@ev.Name</strong> - @ev.Date.ToShortDateString() - Lokation: @ev.Location
                                 <br />
-                                <strong>Status:</strong> @task.Status
-                                <br />
-                                <strong>Start:</strong> @task.StartTime | <strong>Slut:</strong> @task.EndTime
-                                <br />
-                                <strong>Opgavetype:</strong> @task.TaskType
-                                <br />
-                                <strong>Ansvarlige Medarbejdere:</strong>
-                                @if (task.ResponsibleForTask != null && task.ResponsibleForTask.Any())
+                                Kunde: @ev.Customer - Madvalg: @ev.FoodChoice - Særlige ønsker: @ev.SpecialRequests - Deltagerantal: @ev.Participants
+                            </div>
+                            <div>
+                                <!-- Knap til at vise/lukke opgaver for dette event -->
+                                <button class="btn btn-primary btn-sm me-2" @onclick="() => ToggleTasks(ev.Id)">
+                                    @(selectedEventId == ev.Id ? "Luk Opgaver" : "Vis Opgaver")
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Viser opgaver, hvis dette event er valgt -->
+                        @if (selectedEventId == ev.Id)
+                        {
+                            <div class="mt-3">
+                                <h5>Opgaver</h5>
+                                @if (!tasks.Any())
                                 {
-                                <ul class="mt-2">
-                                    @foreach (var medarbejderId in task.ResponsibleForTask)
-                                    {
-                                    var medarbejder = employees.FirstOrDefault(e => e.Id == medarbejderId);
-                                    if (medarbejder != null)
-                                    {
-                                    <li>
-                                        @medarbejder.Name - <em>Kompetencer:</em> @string.Join(", ", medarbejder.MySkills)
-                                    </li>
-                                    }
-                                    }
-                                </ul>
+                                    <p>Ingen opgaver fundet.</p>
                                 }
                                 else
                                 {
-                                <span>Ingen medarbejdere tilknyttet</span>
+                                    <ul class="list-group">
+                                        @foreach (var task in tasks)
+                                        {
+                                            <li class="list-group-item">
+                                                <div>
+                                                    <!-- Viser detaljer for en opgave -->
+                                                    <strong>Opgave:</strong> @task.Description
+                                                    <br />
+                                                    <strong>Status:</strong> @task.Status
+                                                    <br />
+                                                    <strong>Start:</strong> @task.StartTime | <strong>Slut:</strong> @task.EndTime
+                                                    <br />
+                                                    <strong>Opgavetype:</strong> @task.TaskType
+                                                    <br />
+                                                    <strong>Ansvarlige Medarbejdere:</strong>
+                                                    @if (task.ResponsibleForTask != null && task.ResponsibleForTask.Any())
+                                                    {
+                                                        <ul class="mt-2">
+                                                            @foreach (var medarbejderId in task.ResponsibleForTask)
+                                                            {
+                                                                var medarbejder = employees.FirstOrDefault(e => e.Id == medarbejderId);
+                                                                if (medarbejder != null)
+                                                                {
+                                                                    <li>
+                                                                        @medarbejder.Name - <em>Kompetencer:</em> @string.Join(", ", medarbejder.MySkills)
+                                                                    </li>
+                                                                }
+                                                            }
+                                                        </ul>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>Ingen medarbejdere tilknyttet</span>
+                                                    }
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
                                 }
                             </div>
-                        </li>
                         }
-                    </ul>
-                    }
-                </div>
+                    </li>
                 }
-            </li>
-            }
-        </ul>
+            </ul>
         }
     </div>
 </div>
 
 @code {
-private List<Core.Models.Event> events = new();
-private List<TaskItem> tasks = new();
-private List<User> employees = new();
-private string? selectedEventId;
-private string errorMessage = string.Empty;
-private bool isLoading = true;
+    // Lister til events, opgaver og medarbejdere
+    private List<Core.Models.Event> events = new();
+    private List<TaskItem> tasks = new();
+    private List<User> employees = new();
 
-protected override async Task OnInitializedAsync()
-{
-    // Tjek, om brugeren er logget ind ved at kontrollere, om userRole findes i sessionStorage
-    var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", new object[] { "userRole" });
-    
-    // Hvis ingen bruger er logget ind, omdiriger til login-siden
-    if (string.IsNullOrEmpty(userRole))
+    // Variabel til at spore det valgte event og fejlbeskeder
+    private string? selectedEventId;
+    private string errorMessage = string.Empty;
+
+    // Indlæsningsindikator
+    private bool isLoading = true;
+
+    // Lifecycle-metode, der køres ved initialisering af komponenten
+    protected override async Task OnInitializedAsync()
     {
-        NavigationManager.NavigateTo("/", true);
-        return;
+        // Tjekker, om brugeren er logget ind ved at kontrollere sessionStorage
+        var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", new object[] { "userRole" });
+
+        // Hvis ingen bruger er logget ind, naviger til forsiden
+        if (string.IsNullOrEmpty(userRole))
+        {
+            NavigationManager.NavigateTo("/", true);
+            return;
+        }
+
+        // Indlæser data til events, opgaver og medarbejdere
+        await LoadDataAsync();
     }
 
-    // Fortsæt med at indlæse data, hvis brugeren er logget ind
-    await LoadDataAsync();
-}
+    // Indlæser alle nødvendige data
+    private async Task LoadDataAsync()
+    {
+        isLoading = true; // Starter indlæsningsindikator
+        errorMessage = string.Empty;
 
-private async Task LoadDataAsync()
-{
-    isLoading = true;
-    errorMessage = string.Empty;
-    try
-    {
-        await LoadEvents();
+        try
+        {
+            await LoadEvents(); // Henter alle events
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Kunne ikke indlæse data."; // Fejlbesked, hvis datahentning fejler
+            Console.WriteLine($"Fejl: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false; // Slutter indlæsningsindikator
+        }
     }
-    catch (Exception ex)
-    {
-        errorMessage = "Kunne ikke indlæse data.";
-        Console.WriteLine($"Fejl: {ex.Message}");
-    }
-    finally
-    {
-        isLoading = false;
-    }
-}
 
-private async Task LoadEvents()
-{
-    try
+    // Henter alle events via EventService
+    private async Task LoadEvents()
     {
-        events = (await EventService.GetAllEventsAsync()).ToList();
+        try
+        {
+            events = (await EventService.GetAllEventsAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Kunne ikke indlæse events."; // Fejlbesked ved problemer
+            Console.WriteLine($"Fejl: {ex.Message}");
+        }
     }
-    catch (Exception ex)
-    {
-        errorMessage = "Kunne ikke indlæse events.";
-        Console.WriteLine($"Fejl: {ex.Message}");
-    }
-}
 
-private async Task ShowTasks(string eventId)
-{
-    selectedEventId = eventId;
-    try
+    // Henter opgaver til et specifikt event
+    private async Task ShowTasks(string eventId)
     {
-        await LoadEmployees();
-        var allTasks = await TaskItemService.GetAllTaskItemsAsync();
-        tasks = allTasks.Where(t => t.EventId == eventId).ToList();
-    }
-    catch (Exception ex)
-    {
-        errorMessage = "Kunne ikke indlæse opgaver.";
-        Console.WriteLine($"Fejl: {ex.Message}");
-    }
-}
+        selectedEventId = eventId;
 
-private async Task LoadEmployees()
-{
-    try
-    {
-        employees = (await BrugerService.GetUsersByRoleAsync(Role.Medarbejder)).ToList();
+        try
+        {
+            await LoadEmployees(); // Henter medarbejdere
+            var allTasks = await TaskItemService.GetAllTaskItemsAsync();
+            tasks = allTasks.Where(t => t.EventId == eventId).ToList(); // Filtrerer opgaver for dette event
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Kunne ikke indlæse opgaver."; // Fejlbesked ved problemer
+            Console.WriteLine($"Fejl: {ex.Message}");
+        }
     }
-    catch (Exception ex)
-    {
-        errorMessage = "Kunne ikke indlæse medarbejdere.";
-        Console.WriteLine($"Fejl: {ex.Message}");
-    }
-}
 
-private async Task ToggleTasks(string eventId)
-{
-    if (selectedEventId == eventId)
+    // Henter medarbejdere via BrugerService
+    private async Task LoadEmployees()
     {
-        selectedEventId = null;
-        tasks.Clear();
+        try
+        {
+            employees = (await BrugerService.GetUsersByRoleAsync(Role.Medarbejder)).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Kunne ikke indlæse medarbejdere."; // Fejlbesked ved problemer
+            Console.WriteLine($"Fejl: {ex.Message}");
+        }
     }
-    else
+
+    // Skifter mellem at vise eller lukke opgaver for et event
+    private async Task ToggleTasks(string eventId)
     {
-        await ShowTasks(eventId);
+        if (selectedEventId == eventId)
+        {
+            selectedEventId = null; // Lukker opgavelisten
+            tasks.Clear(); // Tømmer listen over opgaver
+        }
+        else
+        {
+            await ShowTasks(eventId); // Viser opgaver for det valgte event
+        }
     }
-}
 }

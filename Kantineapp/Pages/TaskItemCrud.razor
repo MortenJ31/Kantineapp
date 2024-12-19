@@ -7,32 +7,38 @@
 @inject NavigationManager NavigationManager
 
 <div class="container-layout">
-    <!-- Opgave List -->
+    <!-- Header for the task list -->
     <h3 class="mb-4">Oversigten for opgaver</h3>
 
+    <!-- Error message display -->
     @if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div class="alert alert-danger">@errorMessage</div>
+        <div class="alert alert-danger">@errorMessage</div> <!-- Shows an error message if something goes wrong -->
     }
 
+    <!-- Button to open modal for adding a new task -->
     <button class="btn btn-success mb-3" @onclick="ShowAddTaskItemModal">Opret Opgave</button>
 
+    <!-- Loading indicator -->
     @if (isLoading)
     {
-        <p>Indlæser opgaver...</p>
+        <p>Indlæser opgaver...</p> <!-- Displayed while data is loading -->
     }
-    else if (TaskItems == null || !TaskItems.Any())
+    else if (TaskItems == null || !TaskItems.Any()) 
     {
+        <!-- Message displayed if no tasks are found -->
         <p>Ingen opgaver fundet.</p>
     }
-    else
+    else 
     {
+        <!-- List of tasks -->
         <ul class="list-group">
             @foreach (var task in TaskItems)
             {
                 var eventName = events.FirstOrDefault(e => e.Id == task.EventId)?.Name ?? "Ukendt Event";
                 <li class="list-group-item">
                     <div>
+                        <!-- Task details -->
                         <strong>Event:</strong> @eventName <br />
                         <strong>Opgave:</strong> @task.Description <br />
                         <strong>Status:</strong> @task.Status <br />
@@ -42,6 +48,7 @@
                         @if (task.ResponsibleForTask?.Any() ?? false)
                         {
                             <ul>
+                                <!-- Display employees responsible for the task -->
                                 @foreach (var employeeId in task.ResponsibleForTask)
                                 {
                                     var employee = employees.FirstOrDefault(e => e.Id == employeeId);
@@ -54,10 +61,11 @@
                         }
                         else
                         {
-                            <span>Ingen medarbejdere tilknyttet</span>
+                            <span>Ingen medarbejdere tilknyttet</span> <!-- Message if no employees are assigned -->
                         }
                     </div>
                     <div>
+                        <!-- Buttons for editing and deleting tasks -->
                         <button class="btn btn-warning btn-sm me-2" @onclick="() => ShowEditTaskModal(task)">Rediger</button>
                         <button class="btn btn-danger btn-sm" @onclick="() => DeleteTaskItem(task.Id)">Slet</button>
                     </div>
@@ -66,7 +74,7 @@
         </ul>
     }
 
-    <!-- Add Task Modal -->
+    <!-- Modal for adding a new task -->
     @if (showAddTaskItemModal)
     {
         <div class="modal show d-block">
@@ -78,6 +86,7 @@
                     </div>
                     <div class="modal-body">
                         <EditForm Model="@newTaskItem" OnValidSubmit="@AddTaskItem">
+                            <!-- Form fields for creating a new task -->
                             <div class="mb-3">
                                 <label for="taskDescription">Beskrivelse af opgaven:</label>
                                 <InputText id="taskDescription" @bind-Value="newTaskItem.Description" class="form-control" placeholder="Indtast en kort beskrivelse" />
@@ -139,7 +148,7 @@
         </div>
     }
 
-    <!-- Edit Task Modal -->
+    <!-- Modal for editing a task -->
     @if (showEditTaskItemModal)
     {
         <div class="modal show d-block">
@@ -151,6 +160,7 @@
                     </div>
                     <div class="modal-body">
                         <EditForm Model="@selectedTaskItem" OnValidSubmit="@UpdateTaskItem">
+                            <!-- Form fields for editing a task -->
                             <div class="mb-3">
                                 <label for="editTaskDescription">Beskrivelse af opgaven:</label>
                                 <InputText id="editTaskDescription" @bind-Value="selectedTaskItem.Description" class="form-control" />
@@ -216,139 +226,160 @@
 </div>
 
 @code {
-    private List<TaskItem> TaskItems = new();
-    private List<Event> events = new();
-    private List<User> employees = new();
-    private TaskItem newTaskItem = new();
-    private TaskItem selectedTaskItem = new();
-    private string errorMessage = string.Empty;
-    private bool isLoading = true;
-    private bool showAddTaskItemModal = false;
-    private bool showEditTaskItemModal = false;
+// Lister til at holde opgaver, events og medarbejdere
+private List<TaskItem> TaskItems = new(); // Liste over opgaver
+private List<Event> events = new(); // Liste over events
+private List<User> employees = new(); // Liste over medarbejdere
 
-    protected override async Task OnInitializedAsync()
-    {
-        var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "userRole");
-        if (string.IsNullOrEmpty(userRole) || userRole != "Kantineleder")
-        {
-            NavigationManager.NavigateTo("/noaccess", true);
-            return;
-        }
-        await LoadTaskItemAsync();
-    }
+// Felter til den opgave, der oprettes/redigeres i modalerne
+private TaskItem newTaskItem = new(); // Opgave der oprettes
+private TaskItem selectedTaskItem = new(); // Opgave der redigeres
 
+// Diverse UI-state variabler
+private string errorMessage = string.Empty; // Fejlbesked til UI
+private bool isLoading = true; // Indlæsningsindikator
+private bool showAddTaskItemModal = false; // Styrer visning af oprettelsesmodal
+private bool showEditTaskItemModal = false; // Styrer visning af redigeringsmodal
 
-    private async Task LoadTaskItemAsync()
-    {
-        isLoading = true;
-        try
-        {
-            TaskItems = (await TaskItemService.GetAllTaskItemsAsync()).ToList();
-            events = (await EventService.GetAllEventsAsync()).ToList();
-            employees = (await BrugerService.GetUsersByRoleAsync(Role.Medarbejder)).ToList();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Kunne ikke indlæse data: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
-
-    private void ShowAddTaskItemModal()
-    {
-        newTaskItem = new TaskItem { ResponsibleForTask = new List<string>() };
-        showAddTaskItemModal = true;
-    }
-
-    private void CloseAddTaskItemModal() => showAddTaskItemModal = false;
-
-    private async Task AddTaskItem()
-    {
-        try
-        {
-            await TaskItemService.AddTaskItemAsync(newTaskItem);
-            await LoadTaskItemAsync();
-            CloseAddTaskItemModal();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Kunne ikke tilføje opgave: {ex.Message}";
-        }
-    }
-
-    private void ShowEditTaskModal(TaskItem taskItem)
-    {
-        selectedTaskItem = new TaskItem
-        {
-            Id = taskItem.Id,
-            EventId = taskItem.EventId,
-            Description = taskItem.Description,
-            StartTime = taskItem.StartTime,
-            EndTime = taskItem.EndTime,
-            Status = taskItem.Status,
-            TaskType = taskItem.TaskType,
-            ResponsibleForTask = taskItem.ResponsibleForTask?.ToList() ?? new List<string>()
-        };
-        showEditTaskItemModal = true;
-    }
-
-    private void CloseEditTaskItemModal() => showEditTaskItemModal = false;
-
-    private async Task UpdateTaskItem()
-    {
-        try
-        {
-            await TaskItemService.UpdateTaskItemAsync(selectedTaskItem.Id!, selectedTaskItem);
-            await LoadTaskItemAsync();
-            CloseEditTaskItemModal();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Kunne ikke opdatere opgave: {ex.Message}";
-        }
-    }
-
-    private async Task DeleteTaskItem(string taskId)
-    {
-        try
-        {
-            await TaskItemService.DeleteTaskItemAsync(taskId);
-            await LoadTaskItemAsync();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Kunne ikke slette opgave: {ex.Message}";
-        }
-    }
-
-    private void ToggleEmployeeSelection(ChangeEventArgs e, string employeeId, bool isEdit = false)
-    {
-        if ((bool)e.Value!)
-        {
-            if (isEdit)
-            {
-                if (!selectedTaskItem.ResponsibleForTask.Contains(employeeId))
-                    selectedTaskItem.ResponsibleForTask.Add(employeeId);
-            }
-            else
-            {
-                if (!newTaskItem.ResponsibleForTask.Contains(employeeId))
-                    newTaskItem.ResponsibleForTask.Add(employeeId);
-            }
-        }
-        else
-        {
-            if (isEdit)
-            {
-                selectedTaskItem.ResponsibleForTask.Remove(employeeId);
-            }
-            else
-            {
-                newTaskItem.ResponsibleForTask.Remove(employeeId);
-            }
-        }
-    }
+// Lifecycle-metode der kører, når komponenten initialiseres
+protected override async Task OnInitializedAsync()
+{
+// Tjekker brugerens rolle fra sessionStorage
+var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "userRole");
+if (string.IsNullOrEmpty(userRole) || userRole != "Kantineleder")
+{
+// Navigerer til "no access"-siden, hvis brugeren ikke har adgang
+NavigationManager.NavigateTo("/noaccess", true);
+return;
 }
+
+// Indlæser data til opgavelisten
+await LoadTaskItemAsync();
+}
+
+// Indlæser opgaver, events og medarbejdere fra services
+private async Task LoadTaskItemAsync()
+{
+isLoading = true; // Viser indlæsningsindikator
+try
+{
+// Hent opgaver, events og medarbejdere via services
+TaskItems = (await TaskItemService.GetAllTaskItemsAsync()).ToList();
+events = (await EventService.GetAllEventsAsync()).ToList();
+employees = (await BrugerService.GetUsersByRoleAsync(Role.Medarbejder)).ToList();
+}
+catch (Exception ex)
+{
+errorMessage = $"Kunne ikke indlæse data: {ex.Message}"; // Viser fejl, hvis datahentning fejler
+}
+finally
+{
+isLoading = false; // Skjuler indlæsningsindikator
+}
+}
+
+// Åbner modal til oprettelse af opgaver
+private void ShowAddTaskItemModal()
+{
+newTaskItem = new TaskItem { ResponsibleForTask = new List<string>() }; // Initialiserer ny opgave
+showAddTaskItemModal = true;
+}
+
+// Lukker modal til oprettelse af opgaver
+private void CloseAddTaskItemModal() => showAddTaskItemModal = false;
+
+// Tilføjer en ny opgave
+private async Task AddTaskItem()
+{
+try
+{
+await TaskItemService.AddTaskItemAsync(newTaskItem); // Kalder service for at oprette opgaven
+await LoadTaskItemAsync(); // Opdaterer opgavelisten
+CloseAddTaskItemModal(); // Lukker modal
+}
+catch (Exception ex)
+{
+errorMessage = $"Kunne ikke tilføje opgave: {ex.Message}"; // Viser fejl, hvis oprettelsen fejler
+}
+}
+
+// Åbner modal til redigering af en opgave
+private void ShowEditTaskModal(TaskItem taskItem)
+{
+// Kloner den valgte opgave for at undgå at redigere direkte
+selectedTaskItem = new TaskItem
+{
+Id = taskItem.Id,
+EventId = taskItem.EventId,
+Description = taskItem.Description,
+StartTime = taskItem.StartTime,
+EndTime = taskItem.EndTime,
+Status = taskItem.Status,
+TaskType = taskItem.TaskType,
+ResponsibleForTask = taskItem.ResponsibleForTask?.ToList() ?? new List<string>()
+};
+showEditTaskItemModal = true;
+}
+
+// Lukker modal til redigering af opgaver
+private void CloseEditTaskItemModal() => showEditTaskItemModal = false;
+
+// Opdaterer en eksisterende opgave
+private async Task UpdateTaskItem()
+{
+try
+{
+await TaskItemService.UpdateTaskItemAsync(selectedTaskItem.Id!, selectedTaskItem); // Kalder service for at opdatere
+await LoadTaskItemAsync(); // Opdaterer opgavelisten
+CloseEditTaskItemModal(); // Lukker modal
+}
+catch (Exception ex)
+{
+errorMessage = $"Kunne ikke opdatere opgave: {ex.Message}"; // Viser fejl, hvis opdateringen fejler
+}
+}
+
+// Sletter en opgave
+private async Task DeleteTaskItem(string taskId)
+{
+try
+{
+await TaskItemService.DeleteTaskItemAsync(taskId); // Kalder service for at slette opgaven
+await LoadTaskItemAsync(); // Opdaterer opgavelisten
+}
+catch (Exception ex)
+{
+errorMessage = $"Kunne ikke slette opgave: {ex.Message}"; // Viser fejl, hvis sletningen fejler
+}
+}
+
+// Håndterer tilføjelse/fjernelse af medarbejdere til en opgave
+private void ToggleEmployeeSelection(ChangeEventArgs e, string employeeId, bool isEdit = false)
+{
+if ((bool)e.Value!) // Hvis checkboxen er valgt
+{
+if (isEdit) // Tilføj til redigeringsopgave
+{
+if (!selectedTaskItem.ResponsibleForTask.Contains(employeeId))
+selectedTaskItem.ResponsibleForTask.Add(employeeId);
+}
+else // Tilføj til ny opgave
+{
+if (!newTaskItem.ResponsibleForTask.Contains(employeeId))
+newTaskItem.ResponsibleForTask.Add(employeeId);
+}
+}
+else // Hvis checkboxen er fjernet
+{
+if (isEdit) // Fjern fra redigeringsopgave
+{
+selectedTaskItem.ResponsibleForTask.Remove(employeeId);
+}
+else // Fjern fra ny opgave
+{
+newTaskItem.ResponsibleForTask.Remove(employeeId);
+}
+}
+}
+}
+
