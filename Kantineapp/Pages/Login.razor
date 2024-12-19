@@ -1,0 +1,96 @@
+@page "/"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<div class="login-container">
+    <div class="login-card">
+        <h2>Log ind</h2>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+        <div class="alert alert-danger">@ErrorMessage</div>
+        }
+
+        <EditForm Model="@loginRequest" OnValidSubmit="HandleLogin">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email" @bind-Value="loginRequest.Email" class="form-control" placeholder="Indtast din email" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Adgangskode</label>
+                <InputText id="password" @bind-Value="loginRequest.Password" type="password" class="form-control" placeholder="Indtast din adgangskode" />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block mt-3">Log ind</button>
+        </EditForm>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f9f9f9;
+    }
+    .login-card {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 100%;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .btn-block {
+        width: 100%;
+    }
+</style>
+
+@code {
+private LoginRequest loginRequest = new();
+private string ErrorMessage = string.Empty;
+
+protected override async Task OnInitializedAsync()
+{
+// Tjek om brugeren allerede er logget ind
+var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", new object[] { "userRole" });
+
+// Hvis brugeren er logget ind, naviger til /overview
+if (!string.IsNullOrEmpty(userRole))
+{
+NavigationManager.NavigateTo("/overview");
+}
+}
+
+private async Task HandleLogin()
+{
+try
+{
+var response = await Http.PostAsJsonAsync("api/login", loginRequest);
+var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+if (result != null && result.IsSuccessful)
+{
+// Gem brugerens rolle i sessionStorage
+await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", new object[] { "userRole", result.Role });
+
+// Naviger til oversigten
+NavigationManager.NavigateTo("/overview");
+}
+else
+{
+ErrorMessage = result?.Message ?? "Login mislykkedes.";
+}
+}
+catch (Exception ex)
+{
+ErrorMessage = $"Der opstod en fejl: {ex.Message}";
+}
+}
+}

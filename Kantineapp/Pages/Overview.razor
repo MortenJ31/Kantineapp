@@ -1,9 +1,10 @@
-@page "/"
+@page "/overview"
 @using Kantineapp.Services
 @inject IEventService EventService
-@inject IOpgaveService OpgaveService
-@inject IBrugerService BrugerService
-
+@inject ITaskItemService TaskItemService
+@inject IUserService BrugerService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 <div class="container-layout">
     <!-- Event List -->
     <div class="event-list">
@@ -31,9 +32,9 @@
             <li class="list-group-item">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <strong>@ev.Name</strong> - @ev.Dato.ToShortDateString() - Lokation: @ev.Lokation
+                        <strong>@ev.Name</strong> - @ev.Date.ToShortDateString() - Lokation: @ev.Location
                         <br />
-                        Kunde: @ev.Kunde - Madvalg: @ev.MadValg - Særlige ønsker: @ev.SærligeØnsker - Deltagerantal: @ev.DeltagerAntal
+                        Kunde: @ev.Customer - Madvalg: @ev.FoodChoice - Særlige ønsker: @ev.SpecialRequests - Deltagerantal: @ev.Participants
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm me-2" @onclick="() => ToggleTasks(ev.Id)">
@@ -57,25 +58,25 @@
                         {
                         <li class="list-group-item">
                             <div>
-                                <strong>Opgave:</strong> @task.Beskrivelse
+                                <strong>Opgave:</strong> @task.Description
                                 <br />
                                 <strong>Status:</strong> @task.Status
                                 <br />
-                                <strong>Start:</strong> @task.StartTid | <strong>Slut:</strong> @task.SlutTid
+                                <strong>Start:</strong> @task.StartTime | <strong>Slut:</strong> @task.EndTime
                                 <br />
-                                <strong>Opgavetype:</strong> @task.OpgaveType
+                                <strong>Opgavetype:</strong> @task.TaskType
                                 <br />
                                 <strong>Ansvarlige Medarbejdere:</strong>
-                                @if (task.AnsvarligForOpgave != null && task.AnsvarligForOpgave.Any())
+                                @if (task.ResponsibleForTask != null && task.ResponsibleForTask.Any())
                                 {
                                 <ul class="mt-2">
-                                    @foreach (var medarbejderId in task.AnsvarligForOpgave)
+                                    @foreach (var medarbejderId in task.ResponsibleForTask)
                                     {
                                     var medarbejder = employees.FirstOrDefault(e => e.Id == medarbejderId);
                                     if (medarbejder != null)
                                     {
                                     <li>
-                                        @medarbejder.Navn - <em>Kompetencer:</em> @string.Join(", ", medarbejder.MineKompetencer)
+                                        @medarbejder.Name - <em>Kompetencer:</em> @string.Join(", ", medarbejder.MySkills)
                                     </li>
                                     }
                                     }
@@ -101,14 +102,25 @@
 
 @code {
 private List<Core.Models.Event> events = new();
-private List<Opgave> tasks = new();
-private List<Bruger> employees = new();
+private List<TaskItem> tasks = new();
+private List<User> employees = new();
 private string? selectedEventId;
 private string errorMessage = string.Empty;
 private bool isLoading = true;
 
 protected override async Task OnInitializedAsync()
 {
+    // Tjek, om brugeren er logget ind ved at kontrollere, om userRole findes i sessionStorage
+    var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", new object[] { "userRole" });
+    
+    // Hvis ingen bruger er logget ind, omdiriger til login-siden
+    if (string.IsNullOrEmpty(userRole))
+    {
+        NavigationManager.NavigateTo("/", true);
+        return;
+    }
+
+    // Fortsæt med at indlæse data, hvis brugeren er logget ind
     await LoadDataAsync();
 }
 
@@ -150,7 +162,7 @@ private async Task ShowTasks(string eventId)
     try
     {
         await LoadEmployees();
-        var allTasks = await OpgaveService.GetAllOpgaverAsync();
+        var allTasks = await TaskItemService.GetAllTaskItemsAsync();
         tasks = allTasks.Where(t => t.EventId == eventId).ToList();
     }
     catch (Exception ex)
@@ -164,7 +176,7 @@ private async Task LoadEmployees()
 {
     try
     {
-        employees = (await BrugerService.GetUsersByRoleAsync(Rolle.Medarbejder)).ToList();
+        employees = (await BrugerService.GetUsersByRoleAsync(Role.Medarbejder)).ToList();
     }
     catch (Exception ex)
     {

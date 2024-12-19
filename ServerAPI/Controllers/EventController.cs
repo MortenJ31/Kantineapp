@@ -1,7 +1,6 @@
 using Core.Models;
-using ServerAPI.Repositories;
 using Microsoft.AspNetCore.Mvc;
-
+using ServerAPI.Repositories;
 
 namespace ServerAPI.Controllers
 {
@@ -16,46 +15,35 @@ namespace ServerAPI.Controllers
             _eventRepository = eventRepository;
         }
 
-        // Hent alle events
         [HttpGet]
         public async Task<IEnumerable<Event>> GetAll()
         {
             return await _eventRepository.GetAllEventsAsync();
         }
 
-        // Hent event med ID
         [HttpGet("{id}")]
         public async Task<Event?> GetEventById(string id)
         {
             return await _eventRepository.GetEventByIdAsync(id);
         }
 
-        // Tilf�j ny event
         [HttpPost]
         public async Task<Event> Create([FromBody] Event newEvent)
         {
-            // Sæt en midlertidig BrugerID, hvis det er null
-            if (string.IsNullOrEmpty(newEvent.BrugerID))
-            {
-                newEvent.BrugerID = "defaultBrugerId"; // Midlertidigt ID for test og udvikling
-            }
-
             return await _eventRepository.AddEventAsync(newEvent);
         }
-
-
 
         [HttpPut("{id}")]
         public async Task<Event?> Update(string id, [FromBody] Event updatedEvent)
         {
             if (id != updatedEvent.Id)
             {
-                throw new ArgumentException("EventID stemmer ikke overens");
+                throw new ArgumentException("Event ID mismatch");
             }
+
             return await _eventRepository.UpdateEventAsync(id, updatedEvent);
         }
 
-        // Slet event med ID
         [HttpDelete("{id}")]
         public async Task<bool> Delete(string id)
         {

@@ -1,0 +1,354 @@
+@page "/taskitemcrud"
+@using Kantineapp.Services
+@inject ITaskItemService TaskItemService
+@inject IEventService EventService
+@inject IUserService BrugerService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<div class="container-layout">
+    <!-- Opgave List -->
+    <h3 class="mb-4">Oversigten for opgaver</h3>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <button class="btn btn-success mb-3" @onclick="ShowAddTaskItemModal">Opret Opgave</button>
+
+    @if (isLoading)
+    {
+        <p>Indlæser opgaver...</p>
+    }
+    else if (TaskItems == null || !TaskItems.Any())
+    {
+        <p>Ingen opgaver fundet.</p>
+    }
+    else
+    {
+        <ul class="list-group">
+            @foreach (var task in TaskItems)
+            {
+                var eventName = events.FirstOrDefault(e => e.Id == task.EventId)?.Name ?? "Ukendt Event";
+                <li class="list-group-item">
+                    <div>
+                        <strong>Event:</strong> @eventName <br />
+                        <strong>Opgave:</strong> @task.Description <br />
+                        <strong>Status:</strong> @task.Status <br />
+                        <strong>Opgavetype:</strong> @task.TaskType <br />
+                        <strong>Start:</strong> @task.StartTime | <strong>Slut:</strong> @task.EndTime <br />
+                        <strong>Ansvarlige Medarbejdere:</strong>
+                        @if (task.ResponsibleForTask?.Any() ?? false)
+                        {
+                            <ul>
+                                @foreach (var employeeId in task.ResponsibleForTask)
+                                {
+                                    var employee = employees.FirstOrDefault(e => e.Id == employeeId);
+                                    if (employee != null)
+                                    {
+                                        <li>@employee.Name - Kompetencer: @string.Join(", ", employee.MySkills)</li>
+                                    }
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>Ingen medarbejdere tilknyttet</span>
+                        }
+                    </div>
+                    <div>
+                        <button class="btn btn-warning btn-sm me-2" @onclick="() => ShowEditTaskModal(task)">Rediger</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteTaskItem(task.Id)">Slet</button>
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+
+    <!-- Add Task Modal -->
+    @if (showAddTaskItemModal)
+    {
+        <div class="modal show d-block">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Opret en ny opgave</h5>
+                        <button type="button" class="btn-close" @onclick="CloseAddTaskItemModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="@newTaskItem" OnValidSubmit="@AddTaskItem">
+                            <div class="mb-3">
+                                <label for="taskDescription">Beskrivelse af opgaven:</label>
+                                <InputText id="taskDescription" @bind-Value="newTaskItem.Description" class="form-control" placeholder="Indtast en kort beskrivelse" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskEvent">Hvilket event tilhører opgaven?</label>
+                                <InputSelect id="taskEvent" @bind-Value="newTaskItem.EventId" class="form-control">
+                                    <option value="">-- Vælg Event --</option>
+                                    @foreach (var ev in events)
+                                    {
+                                        <option value="@ev.Id">@ev.Name</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="mb-3">
+                                <label for="startTime">Starttidspunkt:</label>
+                                <InputText id="startTime" @bind-Value="newTaskItem.StartTime" class="form-control" placeholder="Indtast starttid (tt:mm)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="endTime">Sluttidspunkt:</label>
+                                <InputText id="endTime" @bind-Value="newTaskItem.EndTime" class="form-control" placeholder="Indtast sluttid (tt:mm)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskStatus">Status på opgaven:</label>
+                                <InputSelect id="taskStatus" @bind-Value="newTaskItem.Status" class="form-control">
+                                    @foreach (var status in Enum.GetValues(typeof(Status)))
+                                    {
+                                        <option value="@status">Status: @status</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="mb-3">
+                                <label for="TaskType">Opgavens type:</label>
+                                <InputSelect id="TaskType" @bind-Value="newTaskItem.TaskType" class="form-control">
+                                    @foreach (var type in Enum.GetValues(typeof(TaskType)))
+                                    {
+                                        <option value="@type">Type: @type</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="mb-3">
+                                <label>Ansvarlige medarbejdere:</label>
+                                @foreach (var employee in employees)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="@employee.Id"
+                                               value="@employee.Id" @onchange="e => ToggleEmployeeSelection(e, employee.Id)" />
+                                        <label class="form-check-label" for="@employee.Id">
+                                            @employee.Name - Kompetencer: @string.Join(", ", employee.MySkills)
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                            <button type="submit" class="btn btn-success">Tilføj Opgave</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Edit Task Modal -->
+    @if (showEditTaskItemModal)
+    {
+        <div class="modal show d-block">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Rediger opgaven</h5>
+                        <button type="button" class="btn-close" @onclick="CloseEditTaskItemModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="@selectedTaskItem" OnValidSubmit="@UpdateTaskItem">
+                            <div class="mb-3">
+                                <label for="editTaskDescription">Beskrivelse af opgaven:</label>
+                                <InputText id="editTaskDescription" @bind-Value="selectedTaskItem.Description" class="form-control" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="editTaskEvent">Hvilket event tilhører opgaven?</label>
+                                <InputSelect id="editTaskEvent" @bind-Value="selectedTaskItem.EventId" class="form-control">
+                                    <option value="">-- Vælg Event --</option>
+                                    @foreach (var ev in events)
+                                    {
+                                        <option value="@ev.Id">@ev.Name</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editStartTime">Starttidspunkt:</label>
+                                <InputText id="editStartTime" @bind-Value="selectedTaskItem.StartTime" class="form-control" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="editEndTime">Sluttidspunkt:</label>
+                                <InputText id="editEndTime" @bind-Value="selectedTaskItem.EndTime" class="form-control" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="editTaskStatus">Status på opgaven:</label>
+                                <InputSelect id="editTaskStatus" @bind-Value="selectedTaskItem.Status" class="form-control">
+                                    @foreach (var status in Enum.GetValues(typeof(Status)))
+                                    {
+                                        <option value="@status">Status: @status</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editTaskType">Opgavens type:</label>
+                                <InputSelect id="editTaskType" @bind-Value="selectedTaskItem.TaskType" class="form-control">
+                                    @foreach (var type in Enum.GetValues(typeof(TaskType)))
+                                    {
+                                        <option value="@type">Type: @type</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="mb-3">
+                                <label>Ansvarlige medarbejdere:</label>
+                                @foreach (var employee in employees)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="@employee.Id"
+                                               value="@employee.Id" 
+                                               checked="@selectedTaskItem.ResponsibleForTask.Contains(employee.Id)"
+                                               @onchange="e => ToggleEmployeeSelection(e, employee.Id, isEdit: true)" />
+                                        <label class="form-check-label" for="@employee.Id">
+                                            @employee.Name - Kompetencer: @string.Join(", ", employee.MySkills)
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                            <button type="submit" class="btn btn-warning">Opdater Opgave</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<TaskItem> TaskItems = new();
+    private List<Event> events = new();
+    private List<User> employees = new();
+    private TaskItem newTaskItem = new();
+    private TaskItem selectedTaskItem = new();
+    private string errorMessage = string.Empty;
+    private bool isLoading = true;
+    private bool showAddTaskItemModal = false;
+    private bool showEditTaskItemModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "userRole");
+        if (string.IsNullOrEmpty(userRole) || userRole != "Kantineleder")
+        {
+            NavigationManager.NavigateTo("/noaccess", true);
+            return;
+        }
+        await LoadTaskItemAsync();
+    }
+
+
+    private async Task LoadTaskItemAsync()
+    {
+        isLoading = true;
+        try
+        {
+            TaskItems = (await TaskItemService.GetAllTaskItemsAsync()).ToList();
+            events = (await EventService.GetAllEventsAsync()).ToList();
+            employees = (await BrugerService.GetUsersByRoleAsync(Role.Medarbejder)).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Kunne ikke indlæse data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowAddTaskItemModal()
+    {
+        newTaskItem = new TaskItem { ResponsibleForTask = new List<string>() };
+        showAddTaskItemModal = true;
+    }
+
+    private void CloseAddTaskItemModal() => showAddTaskItemModal = false;
+
+    private async Task AddTaskItem()
+    {
+        try
+        {
+            await TaskItemService.AddTaskItemAsync(newTaskItem);
+            await LoadTaskItemAsync();
+            CloseAddTaskItemModal();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Kunne ikke tilføje opgave: {ex.Message}";
+        }
+    }
+
+    private void ShowEditTaskModal(TaskItem taskItem)
+    {
+        selectedTaskItem = new TaskItem
+        {
+            Id = taskItem.Id,
+            EventId = taskItem.EventId,
+            Description = taskItem.Description,
+            StartTime = taskItem.StartTime,
+            EndTime = taskItem.EndTime,
+            Status = taskItem.Status,
+            TaskType = taskItem.TaskType,
+            ResponsibleForTask = taskItem.ResponsibleForTask?.ToList() ?? new List<string>()
+        };
+        showEditTaskItemModal = true;
+    }
+
+    private void CloseEditTaskItemModal() => showEditTaskItemModal = false;
+
+    private async Task UpdateTaskItem()
+    {
+        try
+        {
+            await TaskItemService.UpdateTaskItemAsync(selectedTaskItem.Id!, selectedTaskItem);
+            await LoadTaskItemAsync();
+            CloseEditTaskItemModal();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Kunne ikke opdatere opgave: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteTaskItem(string taskId)
+    {
+        try
+        {
+            await TaskItemService.DeleteTaskItemAsync(taskId);
+            await LoadTaskItemAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Kunne ikke slette opgave: {ex.Message}";
+        }
+    }
+
+    private void ToggleEmployeeSelection(ChangeEventArgs e, string employeeId, bool isEdit = false)
+    {
+        if ((bool)e.Value!)
+        {
+            if (isEdit)
+            {
+                if (!selectedTaskItem.ResponsibleForTask.Contains(employeeId))
+                    selectedTaskItem.ResponsibleForTask.Add(employeeId);
+            }
+            else
+            {
+                if (!newTaskItem.ResponsibleForTask.Contains(employeeId))
+                    newTaskItem.ResponsibleForTask.Add(employeeId);
+            }
+        }
+        else
+        {
+            if (isEdit)
+            {
+                selectedTaskItem.ResponsibleForTask.Remove(employeeId);
+            }
+            else
+            {
+                newTaskItem.ResponsibleForTask.Remove(employeeId);
+            }
+        }
+    }
+}

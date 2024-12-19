@@ -1,4 +1,4 @@
-@page "/event"
+@page "/eventcrud"
 @using Kantineapp.Services
 @inject IEventService EventService
 @inject IJSRuntime JSRuntime
@@ -30,9 +30,9 @@
                 <li class="list-group-item">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <strong>@ev.Name</strong> - @ev.Dato.ToShortDateString() - Lokation: @ev.Lokation
+                            <strong>@ev.Name</strong> - @ev.Date.ToShortDateString() - Lokation: @ev.Location
                             <br />
-                            Kunde: @ev.Kunde - Madvalg: @ev.MadValg - Særlige ønsker: @ev.SærligeØnsker - Deltagerantal: @ev.DeltagerAntal
+                            Kunde: @ev.Customer - Madvalg: @ev.FoodChoice - Særlige ønsker: @ev.SpecialRequests - Deltagerantal: @ev.Participants
                         </div>
                         <div>
                             <button class="btn btn-warning btn-sm me-2" @onclick="() => ShowEditEventModal(ev)">Rediger</button>
@@ -63,32 +63,32 @@
                             </div>
                             <div class="mb-3">
                                 <label for="eventDate">Event Dato:</label>
-                                <InputDate id="eventDate" @bind-Value="newEvent.Dato" class="form-control" />
+                                <InputDate id="eventDate" @bind-Value="newEvent.Date" class="form-control" />
                                 <small class="form-text text-muted">Vælg datoen for eventet.</small>
                             </div>
                             <div class="mb-3">
                                 <label for="eventLocation">Lokation:</label>
-                                <InputText id="eventLocation" @bind-Value="newEvent.Lokation" class="form-control" placeholder="Indtast lokation" />
+                                <InputText id="eventLocation" @bind-Value="newEvent.Location" class="form-control" placeholder="Indtast lokation" />
                                 <small class="form-text text-muted">Hvor finder eventet sted? F.eks. "København", "Aarhus".</small>
                             </div>
                             <div class="mb-3">
                                 <label for="participantCount">Deltagerantal:</label>
-                                <InputNumber id="participantCount" @bind-Value="newEvent.DeltagerAntal" class="form-control" placeholder="Indtast antal deltagere" />
+                                <InputNumber id="participantCount" @bind-Value="newEvent.Participants" class="form-control" placeholder="Indtast antal deltagere" />
                                 <small class="form-text text-muted">Hvor mange personer deltager i eventet?</small>
                             </div>
                             <div class="mb-3">
                                 <label for="mealChoice">Madvalg:</label>
-                                <InputText id="mealChoice" @bind-Value="newEvent.MadValg" class="form-control" placeholder="F.eks. Buffet, 3-retters menu" />
+                                <InputText id="mealChoice" @bind-Value="newEvent.FoodChoice" class="form-control" placeholder="F.eks. Buffet, 3-retters menu" />
                                 <small class="form-text text-muted">Vælg madmuligheder, f.eks. "Vegetar", "Kød", "Vegansk".</small>
                             </div>
                             <div class="mb-3">
                                 <label for="specialRequests">Særlige ønsker:</label>
-                                <InputText id="specialRequests" @bind-Value="newEvent.SærligeØnsker" class="form-control" placeholder="Skriv eventuelle særlige ønsker" />
+                                <InputText id="specialRequests" @bind-Value="newEvent.SpecialRequests" class="form-control" placeholder="Skriv eventuelle særlige ønsker" />
                                 <small class="form-text text-muted">Angiv særlige ønsker, f.eks. "Glutenfri", "Lydudstyr".</small>
                             </div>
                             <div class="mb-3">
                                 <label for="eventCustomer">Kunde:</label>
-                                <InputText id="eventCustomer" @bind-Value="newEvent.Kunde" class="form-control" placeholder="Indtast kundens navn" />
+                                <InputText id="eventCustomer" @bind-Value="newEvent.Customer" class="form-control" placeholder="Indtast kundens navn" />
                                 <small class="form-text text-muted">Hvem er kunden? F.eks. "Firma X", "Bryllup X".</small>
                             </div>
                             <button type="submit" class="btn btn-success">Tilføj Event</button>
@@ -118,32 +118,32 @@
                             </div>
                             <div class="mb-3">
                                 <label for="editEventDate">Event Dato:</label>
-                                <InputDate id="editEventDate" @bind-Value="selectedEvent.Dato" class="form-control" />
+                                <InputDate id="editEventDate" @bind-Value="selectedEvent.Date" class="form-control" />
                                 <small class="form-text text-muted">Vælg datoen for eventet.</small>
                             </div>
                             <div class="mb-3">
                                 <label for="editEventLocation">Lokation:</label>
-                                <InputText id="editEventLocation" @bind-Value="selectedEvent.Lokation" class="form-control" placeholder="Indtast lokation" />
+                                <InputText id="editEventLocation" @bind-Value="selectedEvent.Location" class="form-control" placeholder="Indtast lokation" />
                                 <small class="form-text text-muted">Hvor finder eventet sted? F.eks. "København", "Aarhus".</small>
                             </div>
                             <div class="mb-3">
                                 <label for="editParticipantCount">Deltagerantal:</label>
-                                <InputNumber id="editParticipantCount" @bind-Value="selectedEvent.DeltagerAntal" class="form-control" placeholder="Indtast antal deltagere" />
+                                <InputNumber id="editParticipantCount" @bind-Value="selectedEvent.Participants" class="form-control" placeholder="Indtast antal deltagere" />
                                 <small class="form-text text-muted">Hvor mange personer deltager i eventet?</small>
                             </div>
                             <div class="mb-3">
                                 <label for="editMealChoice">Madvalg:</label>
-                                <InputText id="editMealChoice" @bind-Value="selectedEvent.MadValg" class="form-control" placeholder="F.eks. Buffet, 3-retters menu" />
+                                <InputText id="editMealChoice" @bind-Value="selectedEvent.FoodChoice" class="form-control" placeholder="F.eks. Buffet, 3-retters menu" />
                                 <small class="form-text text-muted">Vælg madmuligheder, f.eks. "Vegetar", "Kød", "Vegansk".</small>
                             </div>
                             <div class="mb-3">
                                 <label for="editSpecialRequests">Særlige ønsker:</label>
-                                <InputText id="editSpecialRequests" @bind-Value="selectedEvent.SærligeØnsker" class="form-control" placeholder="Skriv eventuelle særlige ønsker" />
+                                <InputText id="editSpecialRequests" @bind-Value="selectedEvent.SpecialRequests" class="form-control" placeholder="Skriv eventuelle særlige ønsker" />
                                 <small class="form-text text-muted">Angiv særlige ønsker, f.eks. "Glutenfri", "Lydudstyr".</small>
                             </div>
                             <div class="mb-3">
                                 <label for="editEventCustomer">Kunde:</label>
-                                <InputText id="editEventCustomer" @bind-Value="selectedEvent.Kunde" class="form-control" placeholder="Indtast kundens navn" />
+                                <InputText id="editEventCustomer" @bind-Value="selectedEvent.Customer" class="form-control" placeholder="Indtast kundens navn" />
                                 <small class="form-text text-muted">Hvem er kunden? F.eks. "Firma X", "Bryllup X".</small>
                             </div>
                             <button type="submit" class="btn btn-warning">Opdater Event</button>
@@ -166,20 +166,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Hent brugerens rolle fra localStorage
-        var userRole = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "userRole");
+        // Hent brugerens rolle fra sessionStorage
+        var userRole = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "userRole");
 
-        // Tjek, om rollen er "Kantineleder"
+        // Tjek, om rollen er "Administrator"
         if (string.IsNullOrEmpty(userRole) || userRole != "Administrator")
         {
             // Naviger til "ingenadgang", hvis brugeren ikke har rollen
-            NavigationManager.NavigateTo("/ingenadgang", true);
+            NavigationManager.NavigateTo("/noaccess", true);
             return;
         }
 
         // Indlæs data, hvis adgang er givet
         await LoadEvents();
     }
+
 
     private async Task LoadEvents()
     {
@@ -201,7 +202,7 @@
 
     private void ShowAddEventModal()
     {
-        newEvent = new Core.Models.Event { Dato = DateTime.Now };
+        newEvent = new Core.Models.Event { Date = DateTime.Now };
         showAddEventModal = true;
     }
 

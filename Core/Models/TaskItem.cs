@@ -5,19 +5,19 @@ using System.Text.Json.Serialization;
 
 namespace Core.Models
 {
-    public class Opgave
+    public class TaskItem
     {
         [BsonId]
         [BsonRepresentation(BsonType.String)]
         public string? Id { get; set; }
 
-        [BsonElement("Beskrivelse")]
-        public string Beskrivelse { get; set; } = ""; 
+        [BsonElement("Description")]
+        public string Description { get; set; } = ""; 
 
-        [BsonElement("Starttid")]
-        public string StartTid { get; set; } = ""; 
-        [BsonElement("Sluttid")]
-        public string SlutTid { get; set; } = ""; 
+        [BsonElement("StartTime")]
+        public string StartTime { get; set; } = ""; 
+        [BsonElement("EndTime")]
+        public string EndTime { get; set; } = ""; 
 
         [BsonElement("Status")]
         [BsonRepresentation(BsonType.String)]
@@ -27,13 +27,13 @@ namespace Core.Models
         [BsonRepresentation(BsonType.String)]
         public string EventId { get; set; } = ""; 
 
-        [BsonElement("AnsvarligForOpgave")]
+        [BsonElement("ResponsibleForTask")]
         [BsonRepresentation(BsonType.String)]
-        public List<string> AnsvarligForOpgave { get; set; } = new List<string>(); 
+        public List<string> ResponsibleForTask { get; set; } = new List<string>(); 
 
-        [BsonElement("OpgaveType")]
+        [BsonElement("TaskType")]
         [BsonRepresentation(BsonType.String)]
-        public OpgaveType OpgaveType { get; set; } = OpgaveType.Madlavning;
+        public TaskType TaskType { get; set; } = TaskType.Madlavning;
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -53,7 +53,7 @@ namespace Core.Models
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum OpgaveType
+    public enum TaskType
     {
         Madlavning,
         Bordopsætning,

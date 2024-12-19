@@ -12,10 +12,10 @@ namespace ServerAPI.Services
             _database = database;
         }
 
-        //Hent kollektion for Bruger
-        public IMongoCollection<Bruger> GetBrugerCollection()
+        //Hent kollektion for User
+        public IMongoCollection<User> GetUserCollection()
         {
-            return _database.GetCollection<Bruger>("Bruger");
+            return _database.GetCollection<User>("User");
         }
 
         //Hent kollektion for Event
@@ -24,10 +24,10 @@ namespace ServerAPI.Services
             return _database.GetCollection<Event>("Event");
         }
 
-        //Hent kollektion for Opgave
-        public IMongoCollection<Opgave> GetOpgaveCollection()
+        //Hent kollektion for TaskItem
+        public IMongoCollection<TaskItem> GetTaskItemCollection()
         {
-            return _database.GetCollection<Opgave>("Opgave");
+            return _database.GetCollection<TaskItem>("TaskItem");
         }
     }
 }

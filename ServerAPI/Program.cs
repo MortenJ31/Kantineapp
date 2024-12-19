@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Registrer enum-serializers for Status og Rolle
 BsonSerializer.RegisterSerializer(typeof(Status), new EnumSerializer<Status>(BsonType.String));
-BsonSerializer.RegisterSerializer(typeof(Rolle), new EnumSerializer<Rolle>(BsonType.String));
+BsonSerializer.RegisterSerializer(typeof(Role), new EnumSerializer<Role>(BsonType.String));
 
 // Tilføj MongoDB-indstillinger fra appsettings.json
 builder.Services.Configure<MongoDbSettings>(
@@ -36,8 +36,9 @@ builder.Services.AddSingleton<MongoDbService>();
 
 // Registrer repositories
 builder.Services.AddScoped<IEventRepository, EventRepository>();
-builder.Services.AddScoped<IOpgaveRepository, OpgaveRepository>();
-builder.Services.AddScoped<IBrugerRepository, BrugerRepository>();
+builder.Services.AddScoped<ITaskItemRepository, TaskItemRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ILoginRepository, LoginRepository>();
 
 // CORS-politik
 builder.Services.AddCors(options =>

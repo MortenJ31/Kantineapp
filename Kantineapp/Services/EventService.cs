@@ -1,9 +1,6 @@
 using Core.Models;
 using System.Net.Http.Json;
 
-
-
-
 namespace Kantineapp.Services
 {
     public class EventService : IEventService
@@ -32,17 +29,17 @@ namespace Kantineapp.Services
             return await response.Content.ReadFromJsonAsync<Event>();
         }
 
-        public async Task<bool> DeleteEventAsync(string id)
-        {
-            var response = await _httpClient.DeleteAsync($"api/events/{id}");
-            return response.IsSuccessStatusCode;
-        }
-
         public async Task<Event?> UpdateEventAsync(string id, Event updatedEvent)
         {
             var response = await _httpClient.PutAsJsonAsync($"api/events/{id}", updatedEvent);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<Event>();
+        }
+
+        public async Task<bool> DeleteEventAsync(string id)
+        {
+            var response = await _httpClient.DeleteAsync($"api/events/{id}");
+            return response.IsSuccessStatusCode;
         }
     }
 }

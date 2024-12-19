@@ -29,7 +29,6 @@ builder.Services.AddScoped(sp =>
 
 // Dependency injection
 builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IOpgaveService, OpgaveService>();
-builder.Services.AddScoped<IBrugerService, BrugerService>();
-
+builder.Services.AddScoped<ITaskItemService, TaskItemService>();
+builder.Services.AddScoped<IUserService, UserService>();
 await builder.Build().RunAsync();

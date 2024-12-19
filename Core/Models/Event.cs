@@ -10,21 +10,21 @@ namespace Core.Models
         public string? Id { get; set; }
         [BsonElement("Name")]
         public string Name{ get; set; } = "";
-        [BsonElement("Dato")]
+        [BsonElement("Date")]
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
-        public DateTime Dato { get; set; }
-        [BsonElement("Lokation")]
-        public string Lokation { get; set; } = "";
-        [BsonElement("DeltagerAntal")]
-        public int DeltagerAntal { get; set; }
-        [BsonElement("MadValg")]
-        public string MadValg { get; set; } = "";
-        [BsonElement("SærligeØnsker")]
-        public string SærligeØnsker { get; set; } = "";
-        [BsonElement("Kunde")]
-        public string Kunde { get; set; } = "";
+        public DateTime Date { get; set; }
+        [BsonElement("Location")]
+        public string Location { get; set; } = "";
+        [BsonElement("Participants")]
+        public int Participants { get; set; }
+        [BsonElement("FoodChoice")]
+        public string FoodChoice { get; set; } = "";
+        [BsonElement("SpecialRequests")]
+        public string SpecialRequests { get; set; } = "";
+        [BsonElement("Customer")]
+        public string Customer { get; set; } = "";
         [BsonElement("BrugerID")]
         [BsonRepresentation(BsonType.String)]
-        public string? BrugerID { get; set; }
+        public string? UserID { get; set; }
     }
 }

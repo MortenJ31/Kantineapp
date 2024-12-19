@@ -5,27 +5,27 @@ using System.Text.Json.Serialization;
 
 namespace Core.Models
 {
-    public class Bruger
+    public class User
     {
         [BsonId]
         [BsonRepresentation(BsonType.String)]
         public string? Id { get; set; }  = "";
-        [BsonElement("Navn")]
-        public string Navn { get; set; } = "";
+        [BsonElement("Name")]
+        public string Name{ get; set; } = "";
         [BsonElement("Email")]
         public string Email { get; set; } = "";
-        [BsonElement("Adgangskode")]
-        public string Adgangskode { get; set; } = "";
+        [BsonElement("Password")]
+        public string Password { get; set; } = "";
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        [BsonElement("Rolle")]
+        [BsonElement("Role")]
         [BsonRepresentation(BsonType.String)]
-        public Rolle Rolle { get; set; }
-        [BsonElement("MineKompetencer")]
-        public List<string> MineKompetencer { get; set; } = new List<string>();
-        [BsonElement("Notifikationsmetode")]
-        public string Notifikationsmetode { get; set; } = string.Empty;
+        public Role Role { get; set; }
+        [BsonElement("MySkills")]
+        public List<string> MySkills { get; set; } = new List<string>();
+        [BsonElement("NotificationMethod")]
+        public string NotificationMethod { get; set; } = string.Empty;
     }
-    public enum Rolle
+    public enum Role
     {
         [EnumMember(Value = "Administrator")]
         Administrator,
